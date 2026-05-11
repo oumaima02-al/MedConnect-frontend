@@ -1,0 +1,36 @@
+{
+  "nav": { "home": "Accueil", "howitworks": "Comment ça marche", "about": "À propos", "contact": "Prendre RDV" },
+  "hero": {
+    "title": { "line1": "Votre soin,", "line2": "intelligent", "line3": "& connecté" },
+    "subtitle": "Dawini connecte patients, médecins et pharmacies sur une seule plateforme sécurisée. Prenez rendez-vous, consultez vos dossiers et gérez vos ordonnances en ligne.",
+    "cta": { "primary": "Commencer maintenant" },
+    "trusted": "patients nous font confiance",
+    "card1": "Récompenses", "card2": "Patients traités",
+    "card3": { "unit": "ans", "label": "Excellence médicale" }
+  },
+  "stats": {
+    "winrate": "Taux de réussite des soins", "patients": "Patients enregistrés",
+    "satisfaction": "Satisfaction patients", "funding": "Investissements en santé"
+  },
+  "services": {
+    "heading": { "better": "Meilleurs", "rest": "soins, meilleurs résultats." },
+    "records":       { "title": "Dossier médical",          "desc": "Accédez à votre historique médical complet depuis n'importe où, en toute sécurité." },
+    "prescriptions": { "title": "Ordonnances électroniques", "desc": "Recevez vos ordonnances numériquement, transmises directement à votre pharmacie partenaire." },
+    "appointments":  { "title": "Prise de rendez-vous",     "desc": "Planifiez vos consultations en quelques clics avec le médecin de votre choix." },
+    "tracking":      { "title": "Suivi de traitement",      "desc": "Suivez vos traitements avec des rappels intelligents et un bilan clair." },
+    "teleconsult":   { "title": "Téléconsultation",         "desc": "Consultez un médecin en vidéo depuis chez vous, à tout moment de la journée." },
+    "messaging":     { "title": "Messagerie sécurisée",     "desc": "Communiquez avec votre équipe médicale de façon confidentielle et chiffrée." }
+  },
+  "about": {
+    "title": "Vos médecins sont excellents, Dawini les rend encore meilleurs",
+    "desc1": "Dawini permet aux médecins d'avoir plus d'impact sur leurs patients en leur fournissant les bonnes informations au bon moment.",
+    "desc2": "Notre plateforme détecte les signaux critiques, permettant à vos médecins d'intervenir rapidement avant qu'une situation ne s'aggrave.",
+    "cta": "Commencer maintenant"
+  },
+  "roles": {
+    "patient":  { "name": "Patient",   "desc": "RDV, dossiers, ordonnances" },
+    "doctor":   { "name": "Médecin",   "desc": "Planning, patients, prescriptions" },
+    "pharmacy": { "name": "Pharmacie", "desc": "Ordonnances & commandes" }
+  },
+  "footer": { "copy": "© 2024 Dawini — Plateforme médicale connectée", "privacy": "Confidentialité", "contact": "Contact" }
+}
