@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import PrivateRoute from './PrivateRoute';
 import LandingPage from '../features/landing/pages/LandingPage';
-
+import AuthPage from '../features/auth/pages/AuthPage';
 const router = createBrowserRouter([
   // Landing — publique, pas de auth
   {
@@ -10,10 +10,7 @@ const router = createBrowserRouter([
   },
 
   // Login — publique
-  {
-    path: '/login',
-    element: <div>Login Page — coming soon</div>,
-  },
+  { path: '/login', element: <AuthPage /> },
 
   // Routes protégées
   {
@@ -26,6 +23,7 @@ const router = createBrowserRouter([
       },
     ],
   },
+  
 ]);
 
 export default router;
