@@ -10,6 +10,7 @@ const NAV = {
     { to: '/app/medical-records',  label: 'Dossier médical', icon: 'file' },
     { to: '/app/prescriptions',    label: 'Ordonnances',     icon: 'pill' },
     { to: '/app/messages',         label: 'Messagerie',      icon: 'message' },
+    { to: '/app/profile', label: 'Mon profil', icon: 'user' },
   ],
   DOCTOR: [
     { to: '/app/dashboard',        label: 'Tableau de bord', icon: 'grid' },
@@ -17,11 +18,13 @@ const NAV = {
     { to: '/app/schedule',         label: 'Planning',        icon: 'calendar' },
     { to: '/app/prescriptions',    label: 'Prescriptions',   icon: 'pill' },
     { to: '/app/messages',         label: 'Messagerie',      icon: 'message' },
+    { to: '/app/profile', label: 'Mon profil', icon: 'user' },
   ],
   PHARMACIST: [
     { to: '/app/dashboard',        label: 'Tableau de bord', icon: 'grid' },
     { to: '/app/prescriptions',    label: 'Ordonnances',     icon: 'pill' },
     { to: '/app/messages',         label: 'Messagerie',      icon: 'message' },
+    { to: '/app/profile', label: 'Mon profil', icon: 'user' },
   ],
 };
 
@@ -36,6 +39,7 @@ const Icon = ({ name, size = 20, color = 'currentColor' }) => {
     case 'users':   return <svg {...props}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
     case 'logout':  return <svg {...props}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
     case 'bell':    return <svg {...props}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
+    case 'user': return <svg {...props}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
     default: return null;
   }
 };
