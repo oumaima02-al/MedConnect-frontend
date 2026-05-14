@@ -5,6 +5,7 @@ import AuthPage     from '../features/auth/pages/AuthPage';
 import AppLayout    from '../components/layout/AppLayout';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ProfilePage from '../features/profile/pages/ProfilePage';
+import PatientProfilePage from '../features/patient/pages/PatientProfilePage';
 const router = createBrowserRouter([
 
   // ── Public routes ─────────────────────────────
@@ -40,6 +41,8 @@ const router = createBrowserRouter([
           { path: 'schedule',        element: <div style={{padding:24,fontFamily:'DM Sans'}}>Planning — coming soon</div> },
            
           { path: 'profile', element: <ProfilePage /> },
+
+          { path: 'patient-profile', element: <PatientProfilePage /> },
         ],
       },
     ],
