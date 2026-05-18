@@ -6,6 +6,8 @@ import AppLayout    from '../components/layout/AppLayout';
 import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ProfilePage from '../features/profile/pages/ProfilePage';
 import PatientProfilePage from '../features/patient/pages/PatientProfilePage';
+import DoctorSearchPage from '../features/doctors/pages/DoctorSearchPage';
+
 const router = createBrowserRouter([
 
   // ── Public routes ─────────────────────────────
@@ -43,6 +45,8 @@ const router = createBrowserRouter([
           { path: 'profile', element: <ProfilePage /> },
 
           { path: 'patient-profile', element: <PatientProfilePage /> },
+
+          { path: 'doctors', element: <DoctorSearchPage /> },
         ],
       },
     ],
