@@ -28,6 +28,9 @@ const NAV = {
     { to: '/app/messages', label: 'Messagerie', icon: 'message' },
     { to: '/app/profile', label: 'Mon profil', icon: 'user' },
   ],
+  ADMIN: [
+    { to: '/admin/users', label: 'Utilisateurs', icon: 'users' },
+  ],
 };
 
 const Icon = ({ name, size = 20, color = 'currentColor' }) => {
@@ -60,6 +63,11 @@ export default function AppLayout() {
 
   const roleLabel = { PATIENT: 'Patient', DOCTOR: 'Médecin', PHARMACIST: 'Pharmacie' }[role] || role;
   const initials = `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`.toUpperCase() || 'DA';
+  const displayName = role === 'DOCTOR' 
+    ? `Dr. ${user?.prenom || ''} ${user?.nom || ''}`.trim()
+    : role === 'PHARMACIST'
+    ? `Ph. ${user?.prenom || ''} ${user?.nom || ''}`.trim()
+    : `${user?.prenom || ''} ${user?.nom || ''}`.trim();
 
   const handleLogout = async () => {
     await authService.logout().catch(() => { });
@@ -131,7 +139,7 @@ export default function AppLayout() {
               </div>
               <div style={{ overflow: 'hidden' }}>
                 <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {user?.prenom} {user?.nom}
+                  {displayName}
                 </div>
                 <div style={{ fontSize: '0.73rem', color: '#9ca3af' }}>{roleLabel}</div>
               </div>

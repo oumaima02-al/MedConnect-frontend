@@ -8,7 +8,7 @@ export const authService = {
 
   // ─── VERIFY EMAIL OTP ─────────────────────────────────
   verifyEmail: ({ email, otp }) =>
-    api.post('/auth/verify-email', { email, otp }),
+    api.post('/auth/verify-email', { email, code: otp }),
 
   // ─── RESEND OTP ───────────────────────────────────────
   resendOtp: ({ email }) =>
@@ -19,8 +19,8 @@ export const authService = {
     api.post('/auth/login', { email, password }),
 
   // ─── VERIFY LOGIN MFA ─────────────────────────────────
-  verifyLogin: ({ email, otp, sessionToken }) =>
-    api.post('/auth/verify-login', { email, otp, sessionToken }),
+  verifyLogin: ({ email, code }) =>
+    api.post('/auth/verify-login', { email, code }),
 
   // ─── LOGOUT ───────────────────────────────────────────
   logout: () => api.post('/auth/logout'),
@@ -35,18 +35,36 @@ export const authService = {
 
   // ─── RESET PASSWORD ───────────────────────────────────
   resetPassword: ({ email, otp, newPassword }) =>
-    api.post('/auth/reset-password', { email, otp, newPassword }),
+    api.post('/auth/reset-password', { email, code: otp, newPassword }),
 
   // ─── GOOGLE OAUTH ─────────────────────────────────────
   googleAuth: ({ idToken }) =>
     api.post('/auth/google', { idToken }),
 
+  // ─── MFA SETUP ────────────────────────────────────────
+  // POST /auth/mfa/setup → returns { secret, qrCode, backupCodes }
+  setupMfa: ({ mfaMethod, phoneNumber } = {}) =>
+    api.post('/auth/mfa/setup', { mfaMethod, ...(phoneNumber ? { phoneNumber } : {}) }),
+
+  // ─── MFA VERIFY (during login flow) ───────────────────
+  // POST /auth/mfa/verify → final step when mfaRequired=true at login
+  verifyMfaLogin: ({ code, sessionToken }) =>
+    api.post('/auth/mfa/verify', { code, sessionToken }),
+
   // ─── SESSION HELPERS ──────────────────────────────────
   saveSession: (data) => {
-    localStorage.setItem('dawini_access_token',  data.accessToken);
-    localStorage.setItem('dawini_refresh_token', data.refreshToken);
-    localStorage.setItem('dawini_user',          JSON.stringify(data.user));
-    localStorage.setItem('dawini_role',          data.user?.role || '');
+    const token = data.token || data.accessToken;
+    const rawRole = data.user?.role || data.roles?.[0] || '';
+    const normalizedRole = rawRole.replace('ROLE_', '');
+    const userObj = data.user || {
+      id: data.id || data.userId,
+      email: data.email,
+      role: normalizedRole,
+    };
+    localStorage.setItem('dawini_access_token',  token || '');
+    localStorage.setItem('dawini_refresh_token', data.refreshToken || '');
+    localStorage.setItem('dawini_user',          JSON.stringify(userObj));
+    localStorage.setItem('dawini_role',          normalizedRole);
   },
 
   clearSession: () => {
