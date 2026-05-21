@@ -17,16 +17,29 @@ export function useLogin() {
       const { data } = await authService.login({ email, password });
 
       // MFA required
-      if (data.mfaRequired) {
-        return { mfaRequired: true, sessionToken: data.sessionToken, email };
+      if (data.requiresOtp || data.mfaRequired) {
+        return { mfaRequired: true, sessionToken: data.sessionToken || '', email };
       }
 
       // Normal login — save & redirect
       authService.saveSession(data);
-      login(data.user, data.accessToken);
+      
+      const token = data.token || data.accessToken;
+      const normalizedRole = (data.user?.role || data.roles?.[0] || '').replace('ROLE_', '');
+      const userObj = data.user || {
+        id: data.id || data.userId,
+        email: data.email,
+        role: normalizedRole,
+      };
 
-      const role = data.user?.role?.toLowerCase();
-      navigate('/app/dashboard');
+      login(userObj, token);
+
+      const role = normalizedRole.toLowerCase();
+      if (role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/app/dashboard');
+      }
       return { success: true, role };
 
     } catch (err) {
@@ -53,7 +66,18 @@ export function useRegister() {
       await authService.signup(formData);
       return { success: true };
     } catch (err) {
-      const msg = err.response?.data?.error || err.response?.data?.message || "Erreur lors de l'inscription";
+      let msg = "Erreur lors de l'inscription";
+      if (err.response?.data) {
+        if (typeof err.response.data === 'string') {
+          msg = err.response.data;
+        } else if (typeof err.response.data === 'object') {
+          const fieldErrors = Object.entries(err.response.data)
+            .filter(([key]) => key !== 'error' && key !== 'message' && key !== 'status' && key !== 'timestamp' && key !== 'path')
+            .map(([key, val]) => `${val}`)
+            .join(' | ');
+          msg = err.response.data.message || err.response.data.error || fieldErrors || JSON.stringify(err.response.data);
+        }
+      }
       setError(msg);
       return { success: false };
     } finally {
@@ -79,7 +103,23 @@ export function useOtpVerification() {
       navigate('/login?verified=true');
       return { success: true };
     } catch (err) {
-      const msg = err.response?.data?.error || 'Code invalide ou expiré';
+      const status = err.response?.status;
+      const backendMsg = err.response?.data?.error || err.response?.data?.message;
+
+      let msg;
+      if (backendMsg) {
+        // Show exact backend message
+        msg = backendMsg;
+      } else if (status === 500 || status === 503) {
+        // Kafka or server down — don't say "expired"
+        msg = 'Erreur serveur (service indisponible). Vérifiez que Kafka et les services backend sont démarrés.';
+      } else if (!err.response) {
+        // Network error — backend unreachable
+        msg = 'Impossible de joindre le serveur. Vérifiez que le backend est démarré sur le port 8080.';
+      } else {
+        msg = 'Code invalide ou expiré. Utilisez "Renvoyer" pour obtenir un nouveau code.';
+      }
+
       setError(msg);
       return { success: false };
     } finally {

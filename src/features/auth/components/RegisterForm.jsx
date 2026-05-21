@@ -12,7 +12,8 @@ const schema = z.object({
   password:  z.string()
     .min(8, 'Minimum 8 caractères')
     .regex(/[A-Z]/, 'Au moins une majuscule')
-    .regex(/[0-9]/, 'Au moins un chiffre'),
+    .regex(/[0-9]/, 'Au moins un chiffre')
+    .regex(/[@$!%*?&]/, 'Au moins un caractère spécial (@$!%*?&)'),
 });
 
 const Field = ({ label, error, children }) => (

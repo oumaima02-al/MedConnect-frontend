@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useLogin } from '../hooks/useAuth';
-import { Link } from 'react-router-dom';
+import { authService } from '../services/authService';
+import { useAuth } from '../../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const schema = z.object({
   email:    z.string().email('Email invalide'),
@@ -20,16 +22,270 @@ const EyeIcon = ({ show }) => (
   </svg>
 );
 
+const inputStyle = (hasError) => ({
+  width: '100%', padding: '12px 16px',
+  border: `1.5px solid ${hasError ? '#fca5a5' : '#e5e7eb'}`,
+  borderRadius: 12, fontSize: '0.9rem',
+  outline: 'none', background: '#fafafa',
+  fontFamily: 'inherit', color: '#111827',
+  transition: 'border-color 0.2s',
+  boxSizing: 'border-box',
+});
+
+// ─── MFA Step Component ────────────────────────────────────────────────────
+function MfaStep({ sessionToken, email, onBack }) {
+  const [code,    setCode]    = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState('');
+  const { login } = useAuth();
+  const navigate  = useNavigate();
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    if (code.length < 4) { setError('Code invalide'); return; }
+    setLoading(true);
+    setError('');
+    try {
+      const { data } = await authService.verifyLogin({ email, code });
+      authService.saveSession(data);
+      
+      const token = data.token || data.accessToken;
+      const normalizedRole = (data.user?.role || data.roles?.[0] || '').replace('ROLE_', '');
+      const userObj = data.user || {
+        id: data.id || data.userId,
+        email: data.email,
+        role: normalizedRole,
+      };
+
+      login(userObj, token);
+      
+      const role = normalizedRole.toLowerCase();
+      if (role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/app/dashboard');
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || err.response?.data?.message || 'Code incorrect ou expiré');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Header */}
+      <div style={{ textAlign: 'center' }}>
+        <div style={{
+          width: 56, height: 56, borderRadius: '50%',
+          background: 'linear-gradient(135deg, #a7f3d0, #6ee7b7)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto 14px',
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#065f46" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="5" y="11" width="14" height="10" rx="2"/>
+            <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+          </svg>
+        </div>
+        <p style={{ fontSize: '0.92rem', fontWeight: 600, color: '#111827', marginBottom: 4 }}>
+          Vérification en deux étapes
+        </p>
+        <p style={{ fontSize: '0.8rem', color: '#9ca3af' }}>
+          Entrez le code envoyé à <strong>{email}</strong>
+        </p>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div style={{
+          background: '#fef2f2', border: '1px solid #fecaca',
+          borderRadius: 10, padding: '10px 14px',
+          fontSize: '0.83rem', color: '#dc2626',
+          display: 'flex', alignItems: 'center', gap: 7,
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {error}
+        </div>
+      )}
+
+      {/* Code input */}
+      <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div>
+          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: 7 }}>
+            Code de vérification
+          </label>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={8}
+            value={code}
+            onChange={e => { setCode(e.target.value.replace(/\D/g, '')); setError(''); }}
+            placeholder="123456"
+            autoFocus
+            style={{
+              ...inputStyle(!!error),
+              textAlign: 'center',
+              fontSize: '1.4rem',
+              fontWeight: 700,
+              letterSpacing: '0.3em',
+            }}
+            onFocus={e => e.target.style.borderColor = '#2ecc71'}
+            onBlur={e => e.target.style.borderColor = error ? '#fca5a5' : '#e5e7eb'}
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading || code.length < 4}
+          style={{
+            width: '100%', padding: '13px',
+            background: loading || code.length < 4 ? '#86efac' : '#2ecc71',
+            color: 'white', border: 'none', borderRadius: 50,
+            fontSize: '0.95rem', fontWeight: 600,
+            cursor: loading || code.length < 4 ? 'not-allowed' : 'pointer',
+            fontFamily: 'inherit',
+            boxShadow: '0 6px 20px rgba(46,204,113,0.35)',
+            transition: 'all 0.2s',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}
+        >
+          {loading && (
+            <div style={{
+              width: 16, height: 16,
+              border: '2px solid rgba(255,255,255,0.4)',
+              borderTopColor: 'white', borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite',
+            }} />
+          )}
+          {loading ? 'Vérification...' : 'Valider'}
+        </button>
+
+        <button
+          type="button"
+          onClick={onBack}
+          style={{
+            background: 'none', border: 'none',
+            color: '#9ca3af', fontSize: '0.82rem',
+            cursor: 'pointer', fontFamily: 'inherit', fontWeight: 500,
+          }}
+        >
+          ← Retour à la connexion
+        </button>
+      </form>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
+
+// ─── Main Login Form ───────────────────────────────────────────────────────
 export default function LoginForm({ onForgot }) {
   const [showPwd, setShowPwd] = useState(false);
-  const { handleLogin, loading, error } = useLogin();
+  // MFA step state
+  const [mfaStep,        setMfaStep]        = useState(false);
+  const [mfaSessionToken, setMfaSessionToken] = useState('');
+  const [mfaEmail,        setMfaEmail]        = useState('');
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { handleLogin, loading, error, setError } = useLogin();
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Add Google GSI script if not present
+    if (!document.getElementById('google-gsi-script')) {
+      const script = document.createElement('script');
+      script.id = 'google-gsi-script';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.body.appendChild(script);
+      script.onload = initGoogle;
+    } else {
+      initGoogle();
+    }
+
+    function initGoogle() {
+      if (window.google) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '1047128362478-xxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com',
+            callback: handleGoogleCredentialResponse,
+          });
+
+          window.google.accounts.id.renderButton(
+            document.getElementById('google-signin-btn'),
+            { 
+              theme: 'outline', 
+              size: 'large', 
+              shape: 'pill',
+              width: '380', 
+              text: 'signin_with',
+              logo_alignment: 'center'
+            }
+          );
+        } catch (err) {
+          console.error('Failed to init Google Sign-In:', err);
+        }
+      }
+    }
+  }, []);
+
+  const handleGoogleCredentialResponse = async (response) => {
+    const idToken = response.credential;
+    setError('');
+    try {
+      const { data } = await authService.googleAuth({ idToken });
+      authService.saveSession(data);
+      
+      const token = data.token || data.accessToken;
+      const normalizedRole = (data.user?.role || data.roles?.[0] || '').replace('ROLE_', '');
+      const userObj = data.user || {
+        id: data.id || data.userId,
+        email: data.email,
+        role: normalizedRole,
+      };
+
+      login(userObj, token);
+      
+      const role = normalizedRole.toLowerCase();
+      if (role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/app/dashboard');
+      }
+    } catch (err) {
+      const msg = err.response?.data?.error || err.response?.data?.message || 'Erreur de connexion avec Google';
+      setError(msg);
+    }
+  };
+
+  const { register, handleSubmit, getValues, formState: { errors } } = useForm({
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = (data) => handleLogin(data);
+  const onSubmit = async (data) => {
+    const result = await handleLogin(data);
+    // If backend requires MFA, switch to MFA step
+    if (result?.mfaRequired) {
+      setMfaEmail(data.email);
+      setMfaSessionToken(result.sessionToken);
+      setMfaStep(true);
+    }
+  };
 
+  // ── MFA step ──
+  if (mfaStep) {
+    return (
+      <MfaStep
+        email={mfaEmail}
+        sessionToken={mfaSessionToken}
+        onBack={() => { setMfaStep(false); setError(''); }}
+      />
+    );
+  }
+
+  // ── Normal login form ──
   return (
     <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
@@ -57,15 +313,7 @@ export default function LoginForm({ onForgot }) {
           {...register('email')}
           type="email"
           placeholder="votre@email.com"
-          style={{
-            width: '100%', padding: '12px 16px',
-            border: `1.5px solid ${errors.email ? '#fca5a5' : '#e5e7eb'}`,
-            borderRadius: 12, fontSize: '0.9rem',
-            outline: 'none', background: '#fafafa',
-            fontFamily: 'inherit', color: '#111827',
-            transition: 'border-color 0.2s',
-            boxSizing: 'border-box',
-          }}
+          style={inputStyle(!!errors.email)}
           onFocus={e => e.target.style.borderColor = '#2ecc71'}
           onBlur={e => e.target.style.borderColor = errors.email ? '#fca5a5' : '#e5e7eb'}
         />
@@ -93,15 +341,7 @@ export default function LoginForm({ onForgot }) {
             {...register('password')}
             type={showPwd ? 'text' : 'password'}
             placeholder="••••••••"
-            style={{
-              width: '100%', padding: '12px 46px 12px 16px',
-              border: `1.5px solid ${errors.password ? '#fca5a5' : '#e5e7eb'}`,
-              borderRadius: 12, fontSize: '0.9rem',
-              outline: 'none', background: '#fafafa',
-              fontFamily: 'inherit', color: '#111827',
-              transition: 'border-color 0.2s',
-              boxSizing: 'border-box',
-            }}
+            style={{ ...inputStyle(!!errors.password), paddingRight: 46 }}
             onFocus={e => e.target.style.borderColor = '#2ecc71'}
             onBlur={e => e.target.style.borderColor = errors.password ? '#fca5a5' : '#e5e7eb'}
           />
@@ -158,28 +398,15 @@ export default function LoginForm({ onForgot }) {
       </div>
 
       {/* Google */}
-      <button
-        type="button"
-        style={{
-          width: '100%', padding: '12px',
-          background: 'white', border: '1.5px solid #e5e7eb',
-          borderRadius: 50, fontSize: '0.9rem',
-          fontWeight: 600, cursor: 'pointer',
-          fontFamily: 'inherit', color: '#374151',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-          transition: 'border-color 0.2s, background 0.2s',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.borderColor = '#d1d5db'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e5e7eb'; }}
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24">
-          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-        </svg>
-        Continuer avec Google
-      </button>
+      <div 
+        id="google-signin-btn" 
+        style={{ 
+          width: '100%', 
+          display: 'flex', 
+          justifyContent: 'center',
+          minHeight: '44px' 
+        }} 
+      />
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </form>

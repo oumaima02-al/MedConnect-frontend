@@ -83,7 +83,7 @@ function PatientDashboard({ user }) {
     <>
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontFamily: "'Sora',sans-serif", fontSize: '1.5rem', fontWeight: 700, color: '#111827', marginBottom: 4 }}>
-          Bonjour, {user?.prenom} 👋
+          Bonjour, {user?.prenom}
         </h1>
         <p style={{ fontSize: '0.9rem', color: '#9ca3af' }}>Voici un aperçu de votre santé aujourd'hui.</p>
       </div>
@@ -132,7 +132,7 @@ function DoctorDashboard({ user }) {
     <>
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontFamily: "'Sora',sans-serif", fontSize: '1.5rem', fontWeight: 700, color: '#111827', marginBottom: 4 }}>
-          Bonjour, Dr. {user?.nom} 👋
+          Bonjour, Dr. {user?.prenom} {user?.nom}
         </h1>
         <p style={{ fontSize: '0.9rem', color: '#9ca3af' }}>Vous avez 8 consultations aujourd'hui.</p>
       </div>
@@ -215,7 +215,7 @@ function PharmacistDashboard({ user }) {
     <>
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontFamily: "'Sora',sans-serif", fontSize: '1.5rem', fontWeight: 700, color: '#111827', marginBottom: 4 }}>
-          Bonjour, {user?.prenom} 👋
+          Bonjour, Ph. {user?.prenom} {user?.nom}
         </h1>
         <p style={{ fontSize: '0.9rem', color: '#9ca3af' }}>12 ordonnances en attente de traitement.</p>
       </div>

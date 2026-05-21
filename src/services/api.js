@@ -9,8 +9,11 @@ const api = axios.create({
 
 // Attach token on every request
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('dawini_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const isAuthUrl = config.url?.includes('/auth/');
+  const token = localStorage.getItem('dawini_access_token');
+  if (token && !isAuthUrl) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
@@ -18,7 +21,14 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isAuthUrl = error.config?.url?.includes('/auth/');
+    const url = error.config?.url || '';
+    const isOnboardingRequest = 
+      url.includes('/users/doctors') || 
+      url.includes('/users/pharmacists') || 
+      url.includes('/users/professional-documents');
+
+    if (error.response?.status === 401 && !isAuthUrl && !isOnboardingRequest) {
       // Token expired — redirect to login
       window.location.href = '/login';
     }
