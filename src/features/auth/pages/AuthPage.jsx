@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import LoginForm from '../components/LoginForm';
 import RegisterForm from '../components/RegisterForm';
 import OtpVerification from '../components/OtpVerification';
@@ -12,6 +12,10 @@ const TABS = [
 ];
 
 export default function AuthPage() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const isVerified = searchParams.get('verified') === 'true';
+
   const [tab,           setTab]           = useState('login');
   const [step,          setStep]          = useState('form');   // 'form' | 'otp' | 'forgot'
   const [pendingEmail,  setPendingEmail]  = useState('');
@@ -165,7 +169,14 @@ export default function AuthPage() {
               boxShadow: '0 4px 40px rgba(0,0,0,0.07)',
               border: '1px solid #f3f4f6',
             }}>
-              <OtpVerification email={pendingEmail} onBack={onOtpBack} />
+              <OtpVerification
+                email={pendingEmail}
+                onBack={onOtpBack}
+                onSuccess={() => {
+                  setTab('login');
+                  setStep('form');
+                }}
+              />
             </div>
 
           ) : (
@@ -185,6 +196,41 @@ export default function AuthPage() {
                     : 'Rejoignez des milliers de professionnels de santé'}
                 </p>
               </div>
+
+              {/* Success Banner */}
+              {isVerified && (
+                <div style={{
+                  background: '#ecfdf5',
+                  border: '1px solid #a7f3d0',
+                  borderRadius: 16,
+                  padding: '16px 20px',
+                  marginBottom: 24,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 12,
+                  boxShadow: '0 4px 15px rgba(16,185,129,0.05)',
+                  animation: 'fadeIn 0.4s ease-out',
+                }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: '50%',
+                    background: '#10b981',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0, marginTop: 1,
+                  }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
+                  <div style={{ textAlign: 'left' }}>
+                    <h4 style={{ fontFamily: "'Sora',sans-serif", fontSize: '0.88rem', fontWeight: 700, color: '#065f46', margin: '0 0 4px 0' }}>
+                      Validation réussie !
+                    </h4>
+                    <p style={{ fontSize: '0.8rem', color: '#047857', margin: 0, lineHeight: 1.5 }}>
+                      Votre email a été vérifié avec succès. Vous pouvez maintenant vous connecter à votre compte.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Tabs */}
               <div style={{

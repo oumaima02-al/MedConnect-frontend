@@ -2,14 +2,8 @@ import api from '../../../services/api';
 
 export const doctorService = {
 
-  // ─── CREATE doctor profile ────────────────────
-  // POST /users/doctors
-  createProfile: (payload) =>
-    api.post('/users/doctors', payload),
-
-  // ─── SEARCH doctors ───────────────────────────
-  // GET /users/doctors/search
-  // Query: ?specialty=Cardiology&language=...&city=...
+  // ─── SEARCH doctors ───────────────────────────────────────
+  // GET /users/doctors/search?specialty=&language=&city=
   search: ({ specialty, language, city } = {}) => {
     const params = {};
     if (specialty) params.specialty = specialty;
@@ -18,14 +12,29 @@ export const doctorService = {
     return api.get('/users/doctors/search', { params });
   },
 
-  // ─── GET doctor profile ───────────────────────
+  // ─── CREATE doctor profile ────────────────────────────────
+  // POST /users/doctors
+  // Backend expects: userId, rppsLicense, specialty, languages, city, clinicName
+  createProfile: ({
+    userId,
+    professionalRegistrationNumber, // mapped → rppsLicense
+    specialty,
+    languages,
+    city,
+    clinicName,
+  }) =>
+    api.post('/users/doctors', {
+      userId,
+      rppsLicense: professionalRegistrationNumber,
+      specialty,
+      languages,
+      city,
+      clinicName,
+    }),
+
+  // ─── GET doctor profile ───────────────────────────────────
   // GET /users/doctors/{userId}
   getProfile: (userId) =>
     api.get(`/users/doctors/${userId}`),
-
-  // ─── VERIFY doctor profile ────────────────────
-  // PUT /users/doctors/{userId}/verification
-  verifyProfile: (userId, { status, note }) =>
-    api.put(`/users/doctors/${userId}/verification`, { status, note }),
 
 };

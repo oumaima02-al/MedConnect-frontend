@@ -3,14 +3,12 @@ import api from '../../../services/api';
 export const authService = {
 
   // ─── SIGNUP ───────────────────────────────────────────
-  signup: ({ email, password, nom, prenom, telephone }) =>
-    api.post('/auth/signup', { email, password, nom, prenom, telephone }),
-  register: ({ email, password, nom, prenom, telephone }) =>
-    api.post('/auth/register', { email, password, nom, prenom, telephone }),
+  signup: ({ email, password, nom, prenom, telephone, role }) =>
+    api.post('/auth/signup', { email, password, nom, prenom, telephone, role }),
 
   // ─── VERIFY EMAIL OTP ─────────────────────────────────
-  verifyEmail: ({ email, code }) =>
-    api.post('/auth/verify-email', { email, code }),
+  verifyEmail: ({ email, otp }) =>
+    api.post('/auth/verify-email', { email, code: otp }),
 
   // ─── RESEND OTP ───────────────────────────────────────
   resendOtp: ({ email }) =>
@@ -27,17 +25,6 @@ export const authService = {
   // ─── LOGOUT ───────────────────────────────────────────
   logout: () => api.post('/auth/logout'),
 
-  // ─── SESSIONS ─────────────────────────────────────────
-  getSessions: () => api.get('/auth/sessions'),
-  revokeSession: (sessionId) => api.delete(`/auth/sessions/${sessionId}`),
-  logoutAllDevices: () => api.post('/auth/logout-all-devices'),
-
-  // ─── MFA SETUP/VERIFY ─────────────────────────────────
-  setupMfa: ({ method, phoneNumber }) =>
-    api.post('/auth/mfa/setup', { method, phoneNumber }),
-  verifyMfa: ({ method, code }) =>
-    api.post('/auth/mfa/verify', { method, code }),
-
   // ─── REFRESH TOKEN ────────────────────────────────────
   refreshToken: ({ refreshToken }) =>
     api.post('/auth/refresh', { refreshToken }),
@@ -47,33 +34,41 @@ export const authService = {
     api.post('/auth/forgot-password', { email }),
 
   // ─── RESET PASSWORD ───────────────────────────────────
-  resetPassword: ({ email, code, newPassword }) =>
-    api.post('/auth/reset-password', { email, code, newPassword }),
+  resetPassword: ({ email, otp, newPassword }) =>
+    api.post('/auth/reset-password', { email, code: otp, newPassword }),
 
   // ─── GOOGLE OAUTH ─────────────────────────────────────
   googleAuth: ({ idToken }) =>
     api.post('/auth/google', { idToken }),
 
+  // ─── MFA SETUP ────────────────────────────────────────
+  // POST /auth/mfa/setup → returns { secret, qrCode, backupCodes }
+  setupMfa: ({ mfaMethod, phoneNumber } = {}) =>
+    api.post('/auth/mfa/setup', { mfaMethod, ...(phoneNumber ? { phoneNumber } : {}) }),
+
+  // ─── MFA VERIFY (during login flow) ───────────────────
+  // POST /auth/mfa/verify → final step when mfaRequired=true at login
+  verifyMfaLogin: ({ code, sessionToken }) =>
+    api.post('/auth/mfa/verify', { code, sessionToken }),
+
   // ─── SESSION HELPERS ──────────────────────────────────
   saveSession: (data) => {
-    const session = normalizeJwtResponse(data);
-    if (session.accessToken) {
-      localStorage.setItem('dawini_access_token', session.accessToken);
-    }
-    if (session.refreshToken) {
-      localStorage.setItem('dawini_refresh_token', session.refreshToken);
-    }
-    if (session.user) {
-      localStorage.setItem('dawini_user', JSON.stringify(session.user));
-      if (session.user.role) {
-        localStorage.setItem('dawini_role', session.user.role);
-      }
-    }
-    return session;
+    const token = data.token || data.accessToken;
+    const rawRole = data.user?.role || data.roles?.[0] || '';
+    const normalizedRole = rawRole.replace('ROLE_', '');
+    const userObj = data.user || {
+      id: data.id || data.userId,
+      email: data.email,
+      role: normalizedRole,
+    };
+    localStorage.setItem('dawini_access_token',  token || '');
+    localStorage.setItem('dawini_refresh_token', data.refreshToken || '');
+    localStorage.setItem('dawini_user',          JSON.stringify(userObj));
+    localStorage.setItem('dawini_role',          normalizedRole);
   },
 
   clearSession: () => {
-    ['dawini_access_token','dawini_refresh_token','dawini_user','dawini_role','dawini_token']
+    ['dawini_access_token','dawini_refresh_token','dawini_user','dawini_role']
       .forEach(k => localStorage.removeItem(k));
   },
 
@@ -83,25 +78,5 @@ export const authService = {
   },
 
   getStoredRole: () => localStorage.getItem('dawini_role'),
-  getAccessToken: () =>
-    localStorage.getItem('dawini_access_token') || localStorage.getItem('dawini_token'),
-};
-
-const normalizeJwtResponse = (data = {}) => {
-  const accessToken = data.token || data.accessToken;
-  const refreshToken = data.refreshToken;
-  const roles = data.roles || data.user?.roles || [];
-  const roleFromRoles = roles?.[0]?.replace(/^ROLE_/, '') || '';
-  const baseUser = data.user || {
-    id: data.id || data.userId,
-    email: data.email,
-  };
-
-  const user = {
-    ...baseUser,
-    roles: baseUser.roles || roles,
-    role: baseUser.role || roleFromRoles,
-  };
-
-  return { accessToken, refreshToken, user };
+  getAccessToken: () => localStorage.getItem('dawini_access_token'),
 };
