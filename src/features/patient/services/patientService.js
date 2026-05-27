@@ -4,8 +4,8 @@ export const patientService = {
 
   // ─── CREATE patient profile ───────────────────
   // POST /users/patients
-  createProfile: ({ userId, bloodType, medicalHistory, allergies }) =>
-    api.post('/users/patients', { userId, bloodType, medicalHistory, allergies }),
+  createProfile: ({ userId, dateOfBirth, bloodType, insuranceNumber, allergies }) =>
+    api.post('/users/patients', { userId, dateOfBirth, bloodType, insuranceNumber, allergies }),
 
   // ─── GET patient profile ──────────────────────
   // GET /users/patients/{userId}
@@ -14,7 +14,7 @@ export const patientService = {
 
   // ─── UPDATE patient profile ───────────────────
   // PUT /users/patients/{userId}
-  updateProfile: (userId, { bloodType, medicalHistory, allergies }) =>
-    api.put(`/users/patients/${userId}`, { bloodType, medicalHistory, allergies }),
+  updateProfile: (userId, { dateOfBirth, bloodType, insuranceNumber, allergies }) =>
+    api.put(`/users/patients/${userId}`, { dateOfBirth, bloodType, insuranceNumber, allergies }),
 
 };

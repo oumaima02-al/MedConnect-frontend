@@ -33,7 +33,7 @@ export default function OtpVerification({ email, onBack }) {
 
   const onSubmit = () => {
     const code = otp.join('');
-    if (code.length === 6) handleVerify({ email, otp: code });
+    if (code.length === 6) handleVerify({ email, code });
   };
 
   const isComplete = otp.every(d => d !== '');

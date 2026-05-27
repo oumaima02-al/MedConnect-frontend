@@ -20,7 +20,8 @@ export default function ProfileSecurityCard() {
     setLoadingSessions(true);
     try {
       const { data } = await api.get('/auth/sessions');
-      setSessions(data?.data || data || []);
+      const sessionList = data?.sessions || data?.data?.sessions || data?.data || [];
+      setSessions(sessionList);
       setShowSessions(true);
     } catch {
       setSessions([]);

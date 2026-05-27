@@ -44,8 +44,7 @@ export default function RegisterForm({ onSuccess }) {
   });
 
   const onSubmit = async (data) => {
-    // role PATIENT par défaut — imposé par le backend
-    const result = await handleRegister({ ...data, role: 'PATIENT' });
+    const result = await handleRegister(data);
     if (result.success) onSuccess?.(data.email);
   };
 

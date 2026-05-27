@@ -5,9 +5,10 @@ import { z } from 'zod';
 import { useCreatePatientProfile, useUpdatePatientProfile } from '../hooks/usePatient';
 
 const schema = z.object({
-  bloodType:      z.string().min(1, 'Groupe sanguin requis'),
-  medicalHistory: z.string().optional(),
-  allergies:      z.array(z.object({ value: z.string().min(1) })).optional(),
+  bloodType:       z.string().min(1, 'Groupe sanguin requis'),
+  dateOfBirth:     z.string().optional(),
+  insuranceNumber: z.string().optional(),
+  allergies:       z.array(z.object({ value: z.string().min(1) })).optional(),
 });
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -34,9 +35,10 @@ export default function PatientMedicalCard({ patientProfile, isNew = false }) {
   const { register, handleSubmit, control, reset, formState: { errors, isDirty } } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      bloodType:      patientProfile?.bloodType      || '',
-      medicalHistory: patientProfile?.medicalHistory || '',
-      allergies:      (patientProfile?.allergies || []).map(a => ({ value: a })),
+      bloodType:       patientProfile?.bloodType       || '',
+      dateOfBirth:     patientProfile?.dateOfBirth     || '',
+      insuranceNumber: patientProfile?.insuranceNumber || '',
+      allergies:       (patientProfile?.allergies || []).map(a => ({ value: a })),
     },
   });
 
@@ -44,19 +46,21 @@ export default function PatientMedicalCard({ patientProfile, isNew = false }) {
 
   useEffect(() => {
     if (patientProfile) {
-      reset({
-        bloodType:      patientProfile.bloodType      || '',
-        medicalHistory: patientProfile.medicalHistory || '',
-        allergies:      (patientProfile.allergies || []).map(a => ({ value: a })),
-      });
-    }
-  }, [patientProfile, reset]);
+        reset({
+          bloodType:       patientProfile.bloodType       || '',
+          dateOfBirth:     patientProfile.dateOfBirth     || '',
+          insuranceNumber: patientProfile.insuranceNumber || '',
+          allergies:       (patientProfile.allergies || []).map(a => ({ value: a })),
+        });
+      }
+    }, [patientProfile, reset]);
 
   const onSubmit = (data) => {
     const payload = {
-      bloodType:      data.bloodType,
-      medicalHistory: data.medicalHistory || '',
-      allergies:      (data.allergies || []).map(a => a.value).filter(Boolean),
+      bloodType:       data.bloodType,
+      dateOfBirth:     data.dateOfBirth || undefined,
+      insuranceNumber: data.insuranceNumber || undefined,
+      allergies:       (data.allergies || []).map(a => a.value).filter(Boolean),
     };
     onAction(payload, {
       onSuccess: () => setEditing(false),
@@ -301,31 +305,44 @@ export default function PatientMedicalCard({ patientProfile, isNew = false }) {
           )}
         </div>
 
-        {/* Medical history */}
-        <div>
-          <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Antécédents médicaux
-          </label>
-          {editing ? (
-            <textarea
-              {...register('medicalHistory')}
-              rows={4}
-              placeholder="Décrivez vos antécédents médicaux, maladies chroniques, opérations..."
-              style={{
-                ...inputStyle(!!errors.medicalHistory),
-                resize: 'vertical', lineHeight: 1.6,
-              }}
-              onFocus={e => e.target.style.borderColor = '#2ecc71'}
-              onBlur={e => e.target.style.borderColor = '#e5e7eb'}
-            />
-          ) : (
-            <p style={{
-              fontSize: '0.88rem', color: patientProfile?.medicalHistory ? '#374151' : '#9ca3af',
-              lineHeight: 1.7,
-            }}>
-              {patientProfile?.medicalHistory || 'Aucun antécédent renseigné'}
-            </p>
-          )}
+        {/* Date of birth + Insurance number */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Date de naissance
+            </label>
+            {editing ? (
+              <input
+                {...register('dateOfBirth')}
+                type="date"
+                style={inputStyle(!!errors.dateOfBirth)}
+                onFocus={e => e.target.style.borderColor = '#2ecc71'}
+                onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+              />
+            ) : (
+              <p style={{ fontSize: '0.88rem', color: patientProfile?.dateOfBirth ? '#374151' : '#9ca3af' }}>
+                {patientProfile?.dateOfBirth || '—'}
+              </p>
+            )}
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Numéro d'assurance
+            </label>
+            {editing ? (
+              <input
+                {...register('insuranceNumber')}
+                placeholder="INS-123"
+                style={inputStyle(!!errors.insuranceNumber)}
+                onFocus={e => e.target.style.borderColor = '#2ecc71'}
+                onBlur={e => e.target.style.borderColor = '#e5e7eb'}
+              />
+            ) : (
+              <p style={{ fontSize: '0.88rem', color: patientProfile?.insuranceNumber ? '#374151' : '#9ca3af' }}>
+                {patientProfile?.insuranceNumber || '—'}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* If isNew — submit button at bottom */}

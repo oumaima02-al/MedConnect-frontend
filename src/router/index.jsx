@@ -23,9 +23,9 @@ const router = createBrowserRouter([
   // ── Protected routes (all roles) ──────────────
   {
     path: '/app',
-    element: (
-      <PrivateRoute allowedRoles={['PATIENT', 'DOCTOR', 'PHARMACIST']} />
-    ),
+      element: (
+        <PrivateRoute allowedRoles={['PATIENT', 'DOCTOR', 'PHARMACIST', 'USER']} />
+      ),
     children: [
       {
         element: <AppLayout />,

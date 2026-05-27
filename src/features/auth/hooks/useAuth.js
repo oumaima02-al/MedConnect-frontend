@@ -17,15 +17,21 @@ export function useLogin() {
       const { data } = await authService.login({ email, password });
 
       // MFA required
-      if (data.mfaRequired) {
-        return { mfaRequired: true, sessionToken: data.sessionToken, email };
+      const requiresOtp = data.requiresOtp ?? data.mfaRequired;
+      if (requiresOtp) {
+        return {
+          mfaRequired: true,
+          email: data.email || email,
+          mfaMethod: data.mfaMethod,
+          sessionId: data.sessionId,
+        };
       }
 
       // Normal login — save & redirect
-      authService.saveSession(data);
-      login(data.user, data.accessToken);
+      const session = authService.saveSession(data);
+      login(session.user, session.accessToken);
 
-      const role = data.user?.role?.toLowerCase();
+      const role = session.user?.role?.toLowerCase();
       navigate('/app/dashboard');
       return { success: true, role };
 
@@ -71,11 +77,11 @@ export function useOtpVerification() {
   const [resendCool, setResendCool] = useState(0);
   const navigate = useNavigate();
 
-  const handleVerify = async ({ email, otp }) => {
+  const handleVerify = async ({ email, code }) => {
     setLoading(true);
     setError('');
     try {
-      await authService.verifyEmail({ email, otp });
+      await authService.verifyEmail({ email, code });
       navigate('/login?verified=true');
       return { success: true };
     } catch (err) {

@@ -4,9 +4,9 @@ import { doctorService } from '../services/doctorService';
 
 export function useDoctorSearch() {
   const [filters, setFilters] = useState({
-    specialization: '',
-    hospital:       '',
-    query:          '',
+    specialty: '',
+    language:  '',
+    city:      '',
   });
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -25,7 +25,7 @@ export function useDoctorSearch() {
   };
 
   const resetFilters = () => {
-    setFilters({ specialization: '', hospital: '', query: '' });
+    setFilters({ specialty: '', language: '', city: '' });
   };
 
   return {

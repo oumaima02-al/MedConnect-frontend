@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useDoctorSearch } from '../hooks/useDoctors';
 import DoctorCard from '../components/DoctorCard';
 
-const SPECIALIZATIONS = [
+const SPECIALTIES = [
   'Cardiologie', 'Dermatologie', 'Gynécologie',
   'Neurologie', 'Ophtalmologie', 'Pédiatrie',
   'Psychiatrie', 'Radiologie', 'Chirurgie',
@@ -34,7 +34,7 @@ export default function DoctorSearchPage() {
     filters, updateFilter, resetFilters,
   } = useDoctorSearch();
 
-  const hasFilters = filters.specialization || filters.hospital || filters.query;
+  const hasFilters = filters.specialty || filters.language || filters.city;
 
   return (
     <div>
@@ -68,9 +68,9 @@ export default function DoctorSearchPage() {
           </svg>
           <input
             type="text"
-            value={filters.query}
-            onChange={e => updateFilter('query', e.target.value)}
-            placeholder={t('doctors.search_placeholder')}
+            value={filters.city}
+            onChange={e => updateFilter('city', e.target.value)}
+            placeholder={t('doctors.city_placeholder')}
             style={{
               width: '100%', padding: '12px 14px 12px 42px',
               border: '1.5px solid #e5e7eb', borderRadius: 12,
@@ -86,14 +86,14 @@ export default function DoctorSearchPage() {
         {/* Filters row */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, alignItems: 'end' }}>
 
-          {/* Specialization */}
+          {/* Specialty */}
           <div>
             <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#9ca3af', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              {t('doctors.specialization')}
+              {t('doctors.specialty')}
             </label>
             <select
-              value={filters.specialization}
-              onChange={e => updateFilter('specialization', e.target.value)}
+              value={filters.specialty}
+              onChange={e => updateFilter('specialty', e.target.value)}
               style={{
                 width: '100%', padding: '10px 14px',
                 border: '1.5px solid #e5e7eb', borderRadius: 10,
@@ -102,23 +102,23 @@ export default function DoctorSearchPage() {
                 cursor: 'pointer', boxSizing: 'border-box',
               }}
             >
-              <option value="">{t('doctors.all_specializations')}</option>
-              {SPECIALIZATIONS.map(s => (
+              <option value="">{t('doctors.all_specialties')}</option>
+              {SPECIALTIES.map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </div>
 
-          {/* Hospital */}
+          {/* Language */}
           <div>
             <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#9ca3af', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              {t('doctors.hospital')}
+              {t('doctors.language')}
             </label>
             <input
               type="text"
-              value={filters.hospital}
-              onChange={e => updateFilter('hospital', e.target.value)}
-              placeholder={t('doctors.hospital_placeholder')}
+              value={filters.language}
+              onChange={e => updateFilter('language', e.target.value)}
+              placeholder={t('doctors.language_placeholder')}
               style={{
                 width: '100%', padding: '10px 14px',
                 border: '1.5px solid #e5e7eb', borderRadius: 10,
@@ -152,7 +152,7 @@ export default function DoctorSearchPage() {
         {/* Active filters chips */}
         {hasFilters && (
           <div style={{ display: 'flex', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
-            {filters.specialization && (
+            {filters.specialty && (
               <span style={{
                 background: 'rgba(46,204,113,0.08)', color: '#16a34a',
                 border: '1px solid rgba(46,204,113,0.2)',
@@ -160,11 +160,11 @@ export default function DoctorSearchPage() {
                 fontSize: '0.78rem', fontWeight: 600,
                 display: 'flex', alignItems: 'center', gap: 5,
               }}>
-                {filters.specialization}
-                <button onClick={() => updateFilter('specialization', '')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#16a34a', padding: 0, fontSize: 14, lineHeight: 1 }}>×</button>
+                {filters.specialty}
+                <button onClick={() => updateFilter('specialty', '')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#16a34a', padding: 0, fontSize: 14, lineHeight: 1 }}>×</button>
               </span>
             )}
-            {filters.hospital && (
+            {filters.language && (
               <span style={{
                 background: '#eff6ff', color: '#1e40af',
                 border: '1px solid #bfdbfe',
@@ -172,8 +172,20 @@ export default function DoctorSearchPage() {
                 fontSize: '0.78rem', fontWeight: 600,
                 display: 'flex', alignItems: 'center', gap: 5,
               }}>
-                {filters.hospital}
-                <button onClick={() => updateFilter('hospital', '')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1e40af', padding: 0, fontSize: 14, lineHeight: 1 }}>×</button>
+                {filters.language}
+                <button onClick={() => updateFilter('language', '')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1e40af', padding: 0, fontSize: 14, lineHeight: 1 }}>×</button>
+              </span>
+            )}
+            {filters.city && (
+              <span style={{
+                background: '#fef3c7', color: '#92400e',
+                border: '1px solid #fde68a',
+                padding: '3px 10px', borderRadius: 20,
+                fontSize: '0.78rem', fontWeight: 600,
+                display: 'flex', alignItems: 'center', gap: 5,
+              }}>
+                {filters.city}
+                <button onClick={() => updateFilter('city', '')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#92400e', padding: 0, fontSize: 14, lineHeight: 1 }}>×</button>
               </span>
             )}
           </div>
