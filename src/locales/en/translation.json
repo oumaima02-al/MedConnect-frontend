@@ -1,0 +1,36 @@
+{
+  "nav": { "home": "Home", "howitworks": "How it Works", "about": "About Us", "contact": "Request a Demo" },
+  "hero": {
+    "title": { "line1": "Your care,", "line2": "smart", "line3": "& connected" },
+    "subtitle": "Dawini connects patients, doctors, and pharmacies on one secure platform. Book appointments, access your records, and manage prescriptions online.",
+    "cta": { "primary": "Get started now" },
+    "trusted": "patients trust us",
+    "card1": "Awards", "card2": "Treated patients",
+    "card3": { "unit": "yrs", "label": "Medical excellence" }
+  },
+  "stats": {
+    "winrate": "Care success rate", "patients": "Registered patients",
+    "satisfaction": "Patient satisfaction", "funding": "Healthcare investment"
+  },
+  "services": {
+    "heading": { "better": "Better", "rest": "Insights, Outcomes." },
+    "records":       { "title": "Medical record",       "desc": "Access your complete medical history securely from anywhere, at any time." },
+    "prescriptions": { "title": "E-Prescriptions",      "desc": "Receive prescriptions digitally, sent directly to your partner pharmacy." },
+    "appointments":  { "title": "Appointment booking",  "desc": "Schedule consultations in a few clicks with your chosen doctor." },
+    "tracking":      { "title": "Treatment tracking",   "desc": "Track ongoing treatments with smart reminders and a clear overview." },
+    "teleconsult":   { "title": "Teleconsultation",     "desc": "Consult a doctor via video from the comfort of your home, any time." },
+    "messaging":     { "title": "Secure messaging",     "desc": "Communicate with your medical team confidentially and encrypted." }
+  },
+  "about": {
+    "title": "Your Doctors are Great, Dawini Makes Them Even Better",
+    "desc1": "Dawini enables doctors to have more impact on their patients by giving them the right insights at the right time.",
+    "desc2": "Our platform surfaces critical signals, allowing your doctors to intervene quickly before a situation gets worse.",
+    "cta": "Get started now"
+  },
+  "roles": {
+    "patient":  { "name": "Patient",  "desc": "Appointments, records, Rx" },
+    "doctor":   { "name": "Doctor",   "desc": "Schedule, patients, prescriptions" },
+    "pharmacy": { "name": "Pharmacy", "desc": "Prescriptions & orders" }
+  },
+  "footer": { "copy": "© 2024 Dawini — Connected medical platform", "privacy": "Privacy", "contact": "Contact" }
+}
