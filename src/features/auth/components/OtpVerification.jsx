@@ -1,9 +1,11 @@
 import { useRef, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useOtpVerification } from '../hooks/useAuth';
 
-export default function OtpVerification({ email, onBack }) {
+export default function OtpVerification({ email, onBack, onSuccess }) {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const inputs = useRef([]);
+  const navigate = useNavigate();
   const { handleVerify, handleResend, loading, error, resendCool } = useOtpVerification();
 
   // Auto-focus first input
@@ -31,9 +33,15 @@ export default function OtpVerification({ email, onBack }) {
     }
   };
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     const code = otp.join('');
-    if (code.length === 6) handleVerify({ email, code });
+    if (code.length === 6) {
+      const res = await handleVerify({ email, code });
+      if (res?.success) {
+        navigate('/login?verified=true');
+        onSuccess?.();
+      }
+    }
   };
 
   const isComplete = otp.every(d => d !== '');

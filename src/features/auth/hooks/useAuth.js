@@ -82,7 +82,6 @@ export function useOtpVerification() {
     setError('');
     try {
       await authService.verifyEmail({ email, code });
-      navigate('/login?verified=true');
       return { success: true };
     } catch (err) {
       const msg = err.response?.data?.error || 'Code invalide ou expiré';

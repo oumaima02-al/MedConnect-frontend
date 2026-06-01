@@ -2,7 +2,7 @@
   "nav": { "home": "Home", "howitworks": "How it Works", "about": "About Us", "contact": "Request a Demo" },
   "hero": {
     "title": { "line1": "Your care,", "line2": "smart", "line3": "& connected" },
-    "subtitle": "Dawini connects patients, doctors, and pharmacies on one secure platform. Book appointments, access your records, and manage prescriptions online.",
+    "subtitle": "MedConnect connects patients, doctors, and pharmacies on one secure platform. Book appointments, access your records, and manage prescriptions online.",
     "cta": { "primary": "Get started now" },
     "trusted": "patients trust us",
     "card1": "Awards", "card2": "Treated patients",
@@ -22,8 +22,8 @@
     "messaging":     { "title": "Secure messaging",     "desc": "Communicate with your medical team confidentially and encrypted." }
   },
   "about": {
-    "title": "Your Doctors are Great, Dawini Makes Them Even Better",
-    "desc1": "Dawini enables doctors to have more impact on their patients by giving them the right insights at the right time.",
+    "title": "Your Doctors are Great, MedConnect Makes Them Even Better",
+    "desc1": "MedConnect enables doctors to have more impact on their patients by giving them the right insights at the right time.",
     "desc2": "Our platform surfaces critical signals, allowing your doctors to intervene quickly before a situation gets worse.",
     "cta": "Get started now"
   },
@@ -32,5 +32,5 @@
     "doctor":   { "name": "Doctor",   "desc": "Schedule, patients, prescriptions" },
     "pharmacy": { "name": "Pharmacy", "desc": "Prescriptions & orders" }
   },
-  "footer": { "copy": "© 2024 Dawini — Connected medical platform", "privacy": "Privacy", "contact": "Contact" }
+  "footer": { "copy": "© 2024 MedConnect — Connected medical platform", "privacy": "Privacy", "contact": "Contact" }
 }

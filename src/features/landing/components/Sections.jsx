@@ -94,101 +94,80 @@ export function Services() {
   ];
 
   return (
-    <section id="services" style={{ padding: '20px 52px 60px', maxWidth: 1140, margin: '0 auto' }}>
-      {/* Section heading */}
-      <div style={{ textAlign: 'center', marginBottom: 48 }}>
-        <h2 style={{
-          fontFamily: "'Sora', sans-serif",
-          fontSize: '3rem', fontWeight: 800,
-          color: '#111827', lineHeight: 1.1,
-          letterSpacing: '-1px',
-        }}>
-          <span style={{ fontStyle: 'italic', color: '#2ecc71' }}>{t('services.heading.better')}</span>{' '}
-          {t('services.heading.rest')}
-        </h2>
-      </div>
+    <section id="services" style={{ padding: '100px 52px', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', height: '100%', background: 'radial-gradient(circle at 10% 20%, rgba(46,204,113,0.03) 0%, transparent 50%), radial-gradient(circle at 90% 80%, rgba(59,130,246,0.03) 0%, transparent 50%)', zIndex: -1 }} />
 
-      {/* 3 cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
-        {items.map(({ titleKey, descKey, color, iconColor, icon }) => (
-          <div key={titleKey} style={{
-            background: 'white',
-            borderRadius: 24,
-            padding: '32px 28px',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.05)',
-            border: '1px solid #f9fafb',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            cursor: 'pointer',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.1)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.05)'; }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-              <div style={{
-                width: 48, height: 48, borderRadius: 14,
-                background: color,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                {icon(iconColor)}
+      <div style={{ maxWidth: 1140, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 64 }}>
+          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#2ecc71', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12 }}>Nos Services</div>
+          <h2 style={{
+            fontFamily: "'Sora', sans-serif",
+            fontSize: '3.6rem', fontWeight: 800,
+            color: '#111827', lineHeight: 1.1,
+            letterSpacing: '-2px',
+          }}>
+            Une solution complète pour<br/>
+            <span style={{ color: '#2ecc71' }}>votre santé quotidienne.</span>
+          </h2>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24 }}>
+          {items.map(({ titleKey, descKey, color, iconColor, icon }) => (
+            <div key={titleKey} style={{
+              background: 'white',
+              borderRadius: 32,
+              padding: '40px 32px',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
+              border: '1px solid #f9fafb',
+              transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+              cursor: 'pointer',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-10px)'; e.currentTarget.style.boxShadow = '0 20px 50px rgba(0,0,0,0.1)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.04)'; }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 24 }}>
+                <div style={{ width: 56, height: 56, borderRadius: 16, background: color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {icon(iconColor)}
+                </div>
               </div>
-              <div style={{
-                width: 32, height: 32, borderRadius: '50%',
-                background: '#111827',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+              <h3 style={{ fontFamily: "'Sora',sans-serif", fontSize: '1.2rem', fontWeight: 800, color: '#111827', marginBottom: 14 }}>
+                {t(titleKey)}
+              </h3>
+              <p style={{ fontSize: '0.95rem', color: '#64748b', lineHeight: 1.7 }}>
+                {t(descKey)}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24, marginTop: 24 }}>
+          {[
+            { titleKey: 'services.tracking.title',   descKey: 'services.tracking.desc',   color: '#fef9c3', iconColor: '#eab308' },
+            { titleKey: 'services.teleconsult.title', descKey: 'services.teleconsult.desc', color: '#fce7f3', iconColor: '#ec4899' },
+            { titleKey: 'services.messaging.title',  descKey: 'services.messaging.desc',  color: '#ffedd5', iconColor: '#f97316' },
+          ].map(({ titleKey, descKey, color, iconColor }) => (
+            <div key={titleKey} style={{
+              background: 'white', borderRadius: 32, padding: '32px 28px',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.04)', border: '1px solid #f9fafb',
+              transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)', cursor: 'pointer',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.boxShadow = '0 15px 40px rgba(0,0,0,0.08)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.04)'; }}
+            >
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
               </div>
+              <h3 style={{ fontFamily: "'Sora',sans-serif", fontSize: '1.05rem', fontWeight: 800, color: '#111827', marginBottom: 10 }}>
+                {t(titleKey)}
+              </h3>
+              <p style={{ fontSize: '0.9rem', color: '#64748b', lineHeight: 1.7 }}>
+                {t(descKey)}
+              </p>
             </div>
-            <h3 style={{
-              fontFamily: "'Sora',sans-serif", fontSize: '1rem',
-              fontWeight: 700, color: '#111827', marginBottom: 10,
-            }}>
-              {t(titleKey)}
-            </h3>
-            <p style={{ fontSize: '0.85rem', color: '#9ca3af', lineHeight: 1.7 }}>
-              {t(descKey)}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Extra 3 services row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20, marginTop: 20 }}>
-        {[
-          { titleKey: 'services.tracking.title',   descKey: 'services.tracking.desc',   color: '#fef9c3', iconColor: '#eab308' },
-          { titleKey: 'services.teleconsult.title', descKey: 'services.teleconsult.desc', color: '#fce7f3', iconColor: '#ec4899' },
-          { titleKey: 'services.messaging.title',  descKey: 'services.messaging.desc',  color: '#ffedd5', iconColor: '#f97316' },
-        ].map(({ titleKey, descKey, color, iconColor }) => (
-          <div key={titleKey} style={{
-            background: 'white', borderRadius: 24, padding: '28px 24px',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.05)', border: '1px solid #f9fafb',
-            transition: 'transform 0.2s, box-shadow 0.2s', cursor: 'pointer',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.1)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.05)'; }}
-          >
-            <div style={{
-              width: 44, height: 44, borderRadius: 12,
-              background: color,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              marginBottom: 16,
-            }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
-            </div>
-            <h3 style={{ fontFamily: "'Sora',sans-serif", fontSize: '0.95rem', fontWeight: 700, color: '#111827', marginBottom: 8 }}>
-              {t(titleKey)}
-            </h3>
-            <p style={{ fontSize: '0.82rem', color: '#9ca3af', lineHeight: 1.7 }}>
-              {t(descKey)}
-            </p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -299,38 +278,104 @@ export function About() {
 }
 
 /* ─────────────────────────────────────────
-   FOOTER
+   FOOTER (Modern Multi-column)
 ───────────────────────────────────────── */
 export function Footer() {
   const { t } = useTranslation();
+  const currentYear = new Date().getFullYear();
+
+  const footerLinks = [
+    {
+      title: 'Plateforme',
+      links: [
+        { label: 'Accueil', href: '#' },
+        { label: 'Comment ça marche', href: '#services' },
+        { label: 'À propos', href: '#about' },
+        { label: 'Téléconsultation', href: '#' },
+      ]
+    },
+    {
+      title: 'Utilisateurs',
+      links: [
+        { label: 'Espace Patient', href: '/login' },
+        { label: 'Espace Médecin', href: '/become-doctor' },
+        { label: 'Espace Pharmacie', href: '/login' },
+        { label: 'Sécurité des données', href: '#' },
+      ]
+    },
+    {
+      title: 'Support',
+      links: [
+        { label: 'Centre d\'aide', href: '#' },
+        { label: 'Contact', href: '#' },
+        { label: 'Confidentialité', href: '#' },
+        { label: 'Mentions légales', href: '#' },
+      ]
+    }
+  ];
+
   return (
-    <footer style={{ background: '#111827', padding: '32px 52px' }}>
-      <div style={{
-        display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', maxWidth: 1140, margin: '0 auto',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: '50%',
-            background: '#2ecc71',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
+    <footer style={{ background: '#111827', color: 'white', padding: '80px 52px 40px' }}>
+      <div style={{ maxWidth: 1140, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr', gap: 60, marginBottom: 80 }}>
+          {/* Brand Col */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: '50%',
+                background: '#2ecc71',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </div>
+              <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: '1.3rem', color: 'white' }}>MedConnect</span>
+            </div>
+            <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.7, marginBottom: 28, maxWidth: 300 }}>
+              La plateforme de santé nouvelle génération qui connecte patients et professionnels pour une prise en charge plus humaine et intelligente.
+            </p>
+            <div style={{ display: 'flex', gap: 16 }}>
+              {['facebook', 'twitter', 'linkedin', 'instagram'].map(s => (
+                <div key={s} style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#2ecc71'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                >
+                   <div style={{ width: 14, height: 14, border: '1.5px solid white', borderRadius: '2px' }} />
+                </div>
+              ))}
+            </div>
           </div>
-          <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '1rem', color: 'white' }}>Dawini</span>
-        </div>
-        <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.35)' }}>{t('footer.copy')}</p>
-        <div style={{ display: 'flex', gap: 24 }}>
-          {['footer.privacy','footer.contact'].map(k => (
-            <a key={k} href="#" style={{ color: 'rgba(255,255,255,0.35)', textDecoration: 'none', fontSize: '0.8rem', transition: 'color 0.2s' }}
-              onMouseEnter={e => e.target.style.color = '#2ecc71'}
-              onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.35)'}
-            >
-              {t(k)}
-            </a>
+
+          {/* Links Cols */}
+          {footerLinks.map(col => (
+            <div key={col.title}>
+              <h4 style={{ fontFamily: "'Sora',sans-serif", fontSize: '1rem', fontWeight: 700, marginBottom: 24 }}>{col.title}</h4>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {col.links.map(l => (
+                  <li key={l.label} style={{ marginBottom: 12 }}>
+                    <a href={l.href} style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '0.88rem', transition: 'color 0.2s' }}
+                       onMouseEnter={e => e.currentTarget.style.color = 'white'}
+                       onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
+                    >
+                      {l.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
+        </div>
+
+        {/* Bottom */}
+        <div style={{ pt: 32, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 40 }}>
+           <p style={{ color: '#64748b', fontSize: '0.82rem', margin: 0 }}>
+             © {currentYear} MedConnect. Tous droits réservés.
+           </p>
+           <div style={{ display: 'flex', gap: 24 }}>
+             <a href="#" style={{ color: '#64748b', textDecoration: 'none', fontSize: '0.82rem' }}>Politique de confidentialité</a>
+             <a href="#" style={{ color: '#64748b', textDecoration: 'none', fontSize: '0.82rem' }}>Cookies</a>
+           </div>
         </div>
       </div>
     </footer>

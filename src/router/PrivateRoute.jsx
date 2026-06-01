@@ -11,7 +11,7 @@ const PrivateRoute = ({ allowedRoles }) => {
   if (allowedRoles) {
     const hasRole = allowedRoles.includes(effectiveRole)
       || normalizedRoles.some((role) => allowedRoles.includes(role));
-    if (!hasRole) return <Navigate to="/unauthorized" replace />;
+    if (!hasRole) return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;

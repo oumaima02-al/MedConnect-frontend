@@ -31,7 +31,7 @@ export function useUpdateProfile() {
       // Update cache instantly
       queryClient.setQueryData(['profile', 'me'], updated);
       // Update AuthContext so navbar/sidebar reflects new name
-      const token = localStorage.getItem('dawini_access_token');
+      const token = localStorage.getItem('MedConnect_access_token');
       login({ ...user, ...updated }, token);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);

@@ -52,11 +52,18 @@ function UserModal({ user, onClose, onCreate, onUpdate }) {
     e.preventDefault();
     setLoading(true); setError('');
     try {
-      if (isEdit) await onUpdate({ id: user.id, ...form });
-      else        await onCreate(form);
+      console.log('Submitting form:', form);
+      if (isEdit) {
+        await onUpdate({ id: user.id, ...form });
+      } else {
+        await onCreate(form);
+      }
+      // Modal will be closed by the parent's showToast/closeModal logic usually,
+      // but we call onClose here just in case to avoid the "waiting" state.
       onClose();
     } catch (err) {
-      setError(err.response?.data?.error || 'Erreur serveur');
+      console.error('Submit error:', err);
+      setError(err.response?.data?.error || err.response?.data?.message || 'Erreur lors de l\'enregistrement');
     } finally {
       setLoading(false);
     }
@@ -143,18 +150,21 @@ function UserModal({ user, onClose, onCreate, onUpdate }) {
 }
 
 /* ── Confirm Delete Modal ────────────────────────────────────────────────── */
-function ConfirmModal({ user, onClose, onConfirm }) {
+function ConfirmModal({ user, onClose, onConfirm, loading }) {
   return (
     <div style={{
       position:'fixed', inset:0, zIndex:1000, background:'rgba(0,0,0,0.45)',
       display:'flex', alignItems:'center', justifyContent:'center', padding:24,
-    }} onClick={onClose}>
+    }} onClick={loading ? null : onClose}>
       <div onClick={e=>e.stopPropagation()} style={{
         background:'white', borderRadius:20, padding:'28px 24px',
         width:'100%', maxWidth:380, boxShadow:'0 20px 60px rgba(0,0,0,0.15)',
         textAlign:'center',
       }}>
-        <div style={{ width:52, height:52, borderRadius:'50%', background:'#fef2f2', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' }}>
+        <div style={{ 
+          width:52, height:52, borderRadius:'50%', background:'#fef2f2', 
+          display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' 
+        }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
           </svg>
@@ -164,11 +174,30 @@ function ConfirmModal({ user, onClose, onConfirm }) {
           {user?.prenom} {user?.nom} ({user?.email}) sera supprimé définitivement.
         </p>
         <div style={{ display:'flex', gap:10 }}>
-          <button onClick={onClose} style={{ flex:1, padding:'10px', border:'1.5px solid #e5e7eb', borderRadius:10, background:'white', fontSize:'0.85rem', fontWeight:600, color:'#6b7280', cursor:'pointer', fontFamily:'inherit' }}>
+          <button 
+            onClick={onClose} 
+            disabled={loading}
+            style={{ 
+              flex:1, padding:'10px', border:'1.5px solid #e5e7eb', borderRadius:10, 
+              background:'white', fontSize:'0.85rem', fontWeight:600, color:'#6b7280', 
+              cursor: loading ? 'not-allowed' : 'pointer', fontFamily:'inherit' 
+            }}
+          >
             Annuler
           </button>
-          <button onClick={onConfirm} style={{ flex:1, padding:'10px', border:'none', borderRadius:10, background:'#ef4444', fontSize:'0.85rem', fontWeight:600, color:'white', cursor:'pointer', fontFamily:'inherit' }}>
-            Supprimer
+          <button 
+            onClick={onConfirm} 
+            disabled={loading}
+            style={{ 
+              flex:1, padding:'10px', border:'none', borderRadius:10, 
+              background: loading ? '#fca5a5' : '#ef4444', 
+              fontSize:'0.85rem', fontWeight:600, color:'white', 
+              cursor: loading ? 'not-allowed' : 'pointer', fontFamily:'inherit',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7
+            }}
+          >
+            {loading && <div style={{ width:12, height:12, border:'2px solid rgba(255,255,255,0.4)', borderTopColor:'white', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />}
+            {loading ? 'Suppression...' : 'Supprimer'}
           </button>
         </div>
       </div>
@@ -228,19 +257,41 @@ function AuditsPanel() {
     try {
       const res = await adminService.getUsers({ page: 0, size: 100 });
       const usersList = res.data?.data?.content || res.data?.content || res.data || [];
-      const filterPros = usersList.filter(u => u.role === 'DOCTOR' || u.role === 'PHARMACIST');
+      // Any user could have a pending profile, but we focus on those with relevant roles
+      const filterPros = usersList.filter(u => {
+        const r = u.role || u.roles?.[0]?.replace('ROLE_', '') || '';
+        return r === 'DOCTOR' || r === 'PHARMACIST' || r === 'PATIENT';
+      });
       
       const resolved = await Promise.all(
         filterPros.map(async (u) => {
           try {
             let pRes;
-            if (u.role === 'DOCTOR') {
+            const userRole = u.role || u.roles?.[0]?.replace('ROLE_', '') || '';
+            
+            // Try to find a profile in either service
+            // A PATIENT might have a DOCTOR profile waiting for verification
+            try {
               pRes = await doctorService.getProfile(u.id);
-            } else {
-              pRes = await pharmacistService.getProfile(u.id);
+            } catch (e) {
+              try {
+                pRes = await pharmacistService.getProfile(u.id);
+              } catch (e2) {
+                throw new Error('No profile found');
+              }
             }
-            const profile = pRes.data?.data || pRes.data;
-            return { ...u, profile, hasProfile: true };
+            
+            const profile = pRes?.data?.data || pRes?.data;
+            if (!profile) throw new Error('No profile content');
+
+            // Detemine actual application type from profile fields if user is still PATIENT
+            let activeRole = userRole;
+            if (userRole === 'PATIENT') {
+               if (profile.specialty || profile.professionalRegistrationNumber) activeRole = 'DOCTOR';
+               else if (profile.pharmacyName) activeRole = 'PHARMACIST';
+            }
+
+            return { ...u, activeRole, profile, hasProfile: true };
           } catch (e) {
             return { ...u, profile: null, hasProfile: false };
           }
@@ -266,12 +317,12 @@ function AuditsPanel() {
   const handleVerify = async (user, status) => {
     setActionLoading(prev => ({ ...prev, [user.id]: status }));
     try {
-      if (user.role === 'DOCTOR') {
+      if (user.activeRole === 'DOCTOR') {
         await adminService.verifyDoctor(user.id, status);
       } else {
         await adminService.verifyPharmacist(user.id, status);
       }
-      showToast('success', `Dossier de ${user.role === 'DOCTOR' ? 'Dr.' : 'Ph.'} ${user.prenom} ${user.nom} a été ${status === 'VERIFIED' ? 'approuvé' : 'rejeté'} avec succès !`);
+      showToast('success', `Dossier de ${user.activeRole === 'DOCTOR' ? 'Dr.' : 'Ph.'} ${user.prenom} ${user.nom} a été ${status === 'VERIFIED' ? 'approuvé' : 'rejeté'} avec succès !`);
       
       // Update local state dynamically
       setPros(prev => prev.map(p => {
@@ -412,7 +463,7 @@ function AuditsPanel() {
       {!loading && !error && filteredPros.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
           {filteredPros.map(p => {
-            const isDoc = p.role === 'DOCTOR';
+            const isDoc = p.activeRole === 'DOCTOR';
             const profile = p.profile;
             return (
               <div key={p.id} style={{
@@ -443,11 +494,11 @@ function AuditsPanel() {
                     </h3>
                     <span style={{
                       fontSize: '0.73rem', fontWeight: 700,
-                      color: isDoc ? '#2563eb' : '#7c3aed',
-                      background: isDoc ? '#eff6ff' : '#f5f3ff',
+                      color: isDoc ? '#2ecc71' : '#7c3aed',
+                      background: isDoc ? '#f0fdf4' : '#f5f3ff',
                       padding: '2px 8px', borderRadius: 20, marginTop: 4, display: 'inline-block'
                     }}>
-                      {isDoc ? `Spécialité: ${profile?.specialty}` : `Pharmacie: ${profile?.pharmacyName}`}
+                      {isDoc ? `Spécialité: ${profile?.specialty || 'Non définie'}` : `Pharmacie: ${profile?.pharmacyName}`}
                     </span>
                   </div>
                 </div>
@@ -463,8 +514,8 @@ function AuditsPanel() {
                   fontSize: '0.8rem',
                 }}>
                   <div>
-                    <span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>N° Enregistrement / Licence</span>
-                    <strong style={{ color: '#0f172a' }}>{profile?.rppsLicense || profile?.finessNumber || '—'}</strong>
+                    <span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>{isDoc ? "N° Inscription" : "N° Licence"}</span>
+                    <strong style={{ color: '#0f172a' }}>{profile?.professionalRegistrationNumber || profile?.rppsLicense || profile?.finessNumber || '—'}</strong>
                   </div>
                   <div>
                     <span style={{ color: '#64748b', display: 'block', marginBottom: 2 }}>N° CNI</span>
@@ -628,6 +679,12 @@ export default function AdminUsersPage() {
 
   const [activeTab, setActiveTab] = useState('users'); // 'users' | 'audits'
   const [modal,  setModal]  = useState(null); // null | 'create' | { mode:'edit', user } | { mode:'delete', user }
+  const [toast, setToast] = useState(null); // { type: 'success' | 'error', msg }
+
+  const showToast = (type, msg) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const closeModal = () => setModal(null);
 
@@ -639,7 +696,16 @@ export default function AdminUsersPage() {
       {modal === 'create' && (
         <UserModal
           onClose={closeModal}
-          onCreate={async (data) => { await createUser.mutateAsync(data); }}
+          onCreate={async (data) => { 
+            try {
+              await createUser.mutateAsync(data); 
+              showToast('success', 'Utilisateur créé avec succès !');
+              closeModal();
+            } catch (err) {
+              console.error('Create failed:', err);
+              throw err;
+            }
+          }}
           onUpdate={null}
         />
       )}
@@ -648,16 +714,55 @@ export default function AdminUsersPage() {
           user={modal.user}
           onClose={closeModal}
           onCreate={null}
-          onUpdate={async (data) => { await updateUser.mutateAsync(data); }}
+          onUpdate={async (data) => { 
+            try {
+              await updateUser.mutateAsync(data); 
+              showToast('success', 'Utilisateur mis à jour avec succès !');
+              closeModal();
+            } catch (err) {
+              // Error is handled by UserModal internal state, but we log here
+              console.error('Update failed:', err);
+              throw err; 
+            }
+          }}
         />
       )}
       {modal?.mode === 'delete' && (
         <ConfirmModal
           user={modal.user}
+          loading={deleteUser.isPending}
           onClose={closeModal}
-          onConfirm={async () => { await deleteUser.mutateAsync(modal.user.id); closeModal(); }}
+          onConfirm={async () => { 
+            try {
+              await deleteUser.mutateAsync(modal.user.id); 
+              showToast('success', `L'utilisateur ${modal.user.prenom} a été supprimé avec succès !`);
+              closeModal(); 
+            } catch (err) {
+              showToast('error', `Erreur lors de la suppression: ${err.response?.data?.error || 'Erreur serveur'}`);
+            }
+          }}
         />
       )}
+
+      {/* Global Toast Notification */}
+      {toast && (
+        <div style={{
+          position: 'fixed', top: 24, right: 24, zIndex: 9999,
+          background: toast.type === 'success' ? '#10b981' : '#ef4444',
+          color: 'white', padding: '12px 24px', borderRadius: 12,
+          fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: '0.88rem',
+          boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
+          animation: 'slideIn 0.3s ease-out'
+        }}>
+          {toast.msg}
+        </div>
+      )}
+      <style>{`
+        @keyframes slideIn {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `}</style>
 
       {/* Page header */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 24 }}>
@@ -913,16 +1018,29 @@ export default function AdminUsersPage() {
                   </button>
                   {/* Suspend */}
                   <button
-                    onClick={() => suspendUser.mutate(u.id)}
-                    title="Suspendre"
+                    onClick={async () => {
+                      try {
+                        await suspendUser.mutateAsync(u.id);
+                        showToast('success', `Statut de ${u.prenom} mis à jour avec succès.`);
+                      } catch (err) {
+                        showToast('error', 'Erreur lors de la mise à jour du statut.');
+                      }
+                    }}
+                    title={u.enabled ? "Suspendre" : "Activer"}
                     style={{
-                      background:'#fef9c3', border:'none', borderRadius:8,
+                      background: u.enabled ? '#fef9c3' : '#f0fdf4', border:'none', borderRadius:8,
                       padding:'6px 10px', cursor:'pointer',
                     }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ca8a04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/>
-                    </svg>
+                    {u.enabled ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ca8a04" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/>
+                      </svg>
+                    ) : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    )}
                   </button>
                   {/* Delete */}
                   <button

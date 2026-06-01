@@ -46,7 +46,7 @@ export default function Navbar() {
           </svg>
         </div>
         <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '1.1rem', color: '#111827' }}>
-          Dawini
+          MedConnect
         </span>
       </div>
 
