@@ -8,10 +8,10 @@ const api = axios.create({
 });
 
 const getAccessToken = () =>
-  localStorage.getItem('dawini_access_token') || localStorage.getItem('dawini_token');
-const getRefreshToken = () => localStorage.getItem('dawini_refresh_token');
+  localStorage.getItem('MedConnect_access_token') || localStorage.getItem('MedConnect_token');
+const getRefreshToken = () => localStorage.getItem('MedConnect_refresh_token');
 const clearStoredSession = () => {
-  ['dawini_access_token', 'dawini_refresh_token', 'dawini_user', 'dawini_role', 'dawini_token']
+  ['MedConnect_access_token', 'MedConnect_refresh_token', 'MedConnect_user', 'MedConnect_role', 'MedConnect_token']
     .forEach((key) => localStorage.removeItem(key));
 };
 
@@ -42,9 +42,9 @@ api.interceptors.response.use(
           refreshPromise = null;
           const nextToken = data.token || data.accessToken;
           if (nextToken) {
-            localStorage.setItem('dawini_access_token', nextToken);
+            localStorage.setItem('MedConnect_access_token', nextToken);
             if (data.refreshToken) {
-              localStorage.setItem('dawini_refresh_token', data.refreshToken);
+              localStorage.setItem('MedConnect_refresh_token', data.refreshToken);
             }
             originalConfig.headers.Authorization = `Bearer ${nextToken}`;
             return api(originalConfig);

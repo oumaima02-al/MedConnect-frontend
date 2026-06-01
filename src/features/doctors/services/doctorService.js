@@ -14,23 +14,22 @@ export const doctorService = {
 
   // ─── CREATE doctor profile ────────────────────────────────
   // POST /users/doctors
-  // Backend expects: userId, rppsLicense, specialty, languages, city, clinicName
-  createProfile: ({
-    userId,
-    professionalRegistrationNumber, // mapped → rppsLicense
-    specialty,
-    languages,
-    city,
-    clinicName,
-  }) =>
-    api.post('/users/doctors', {
-      userId,
-      rppsLicense: professionalRegistrationNumber,
-      specialty,
-      languages,
-      city,
-      clinicName,
-    }),
+  createProfile: (profileData) => {
+    // Backend expects exactly: userId, specialty, languages, city, clinicName, 
+    // professionalRegistrationNumber, nationalIdNumber, registrationAuthority
+    return api.post('/users/doctors', {
+      userId: profileData.userId,
+      specialty: profileData.specialty,
+      languages: profileData.languages,
+      city: profileData.city,
+      clinicName: profileData.clinicName,
+      professionalRegistrationNumber: profileData.professionalRegistrationNumber,
+      nationalIdNumber: profileData.nationalIdNumber,
+      registrationAuthority: profileData.registrationAuthority,
+      // Keeping rppsLicense for backward compatibility if needed, but the error message asks for professionalRegistrationNumber
+      rppsLicense: profileData.professionalRegistrationNumber,
+    });
+  },
 
   // ─── GET doctor profile ───────────────────────────────────
   // GET /users/doctors/{userId}

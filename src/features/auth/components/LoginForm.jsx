@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { useLogin } from '../hooks/useAuth';
 import { authService } from '../services/authService';
 import { useAuth } from '../../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const schema = z.object({
   email:    z.string().email('Email invalide'),
@@ -190,6 +190,8 @@ export default function LoginForm({ onForgot }) {
   const { handleLogin, loading, error, setError } = useLogin();
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isVerified = new URLSearchParams(location.search).get('verified') === 'true';
 
   useEffect(() => {
     // Add Google GSI script if not present

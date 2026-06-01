@@ -7,6 +7,22 @@ import DashboardPage from '../features/dashboard/pages/DashboardPage';
 import ProfilePage from '../features/profile/pages/ProfilePage';
 import PatientProfilePage from '../features/patient/pages/PatientProfilePage';
 import DoctorSearchPage from '../features/doctors/pages/DoctorSearchPage';
+import MedicalRecordsPage from '../features/medical-records/pages/MedicalRecordsPage';
+import PrescriptionsPage from '../features/prescriptions/pages/PrescriptionsPage';
+import AppointmentsPage from '../features/appointments/pages/AppointmentsPage';
+import TeleconsultPage from '../features/teleconsult/pages/TeleconsultPage';
+import BecomeDoctorPage from '../features/become-doctor/pages/BecomeDoctorPage';
+import AdminUsersPage from '../features/admin/pages/AdminUsersPage';
+import PatientDmpPage from '../features/patient/pages/PatientDmpPage';
+import VitalsPage from '../features/patient/pages/VitalsPage';
+import DoctorPatientView from '../features/doctor/pages/DoctorPatientView';
+import ConsultationPage from '../features/doctor/pages/ConsultationPage';
+import CreatePrescriptionPage from '../features/doctor/pages/CreatePrescriptionPage';
+import ConsentPage from '../features/patient/pages/ConsentPage';
+import PatientDocumentsPage from '../features/patient/pages/PatientDocumentsPage';
+import PatientAllergiesPage from '../features/patient/pages/PatientAllergiesPage';
+import MessagingPage from '../features/messaging/pages/MessagingPage';
+import NotificationsPage from '../features/notifications/pages/NotificationsPage';
 
 const router = createBrowserRouter([
 
@@ -33,20 +49,77 @@ const router = createBrowserRouter([
           { path: 'dashboard',       element: <DashboardPage /> },
 
           // Patient
-          { path: 'appointments',    element: <div style={{padding:24,fontFamily:'DM Sans'}}>Rendez-vous — coming soon</div> },
-          { path: 'medical-records', element: <div style={{padding:24,fontFamily:'DM Sans'}}>Dossier médical — coming soon</div> },
-          { path: 'prescriptions',   element: <div style={{padding:24,fontFamily:'DM Sans'}}>Ordonnances — coming soon</div> },
-          { path: 'messages',        element: <div style={{padding:24,fontFamily:'DM Sans'}}>Messagerie — coming soon</div> },
+          { path: 'appointments',    element: <AppointmentsPage /> },
+          { path: 'medical-records', element: <MedicalRecordsPage /> },
+          { path: 'prescriptions',   element: <PrescriptionsPage /> },
+          { path: 'teleconsult',     element: <TeleconsultPage /> },
+          { path: 'messages',        element: <MessagingPage /> },
+          { path: 'notifications',    element: <NotificationsPage /> },
 
           // Doctor
           { path: 'patients',        element: <div style={{padding:24,fontFamily:'DM Sans'}}>Mes patients — coming soon</div> },
-          { path: 'schedule',        element: <div style={{padding:24,fontFamily:'DM Sans'}}>Planning — coming soon</div> },
+          { path: 'schedule',        element: <AppointmentsPage /> },
            
           { path: 'profile', element: <ProfilePage /> },
 
           { path: 'patient-profile', element: <PatientProfilePage /> },
+          { path: 'become-doctor',   element: <BecomeDoctorPage /> },
 
           { path: 'doctors', element: <DoctorSearchPage /> },
+        ],
+      },
+    ],
+  },
+
+  // ── Patient Space ──────────────────────────────
+  {
+    path: '/patient',
+    element: <PrivateRoute allowedRoles={['PATIENT', 'USER', 'ADMIN']} />,
+    children: [
+      {
+        element: <AppLayout />,
+        children: [
+          { path: 'dashboard', element: <DashboardPage /> },
+          { path: 'dmp',       element: <PatientDmpPage /> },
+          { path: 'vitals',    element: <VitalsPage /> },
+          { path: 'consent',   element: <ConsentPage /> },
+          { path: 'documents', element: <PatientDocumentsPage /> },
+          { path: 'allergies', element: <PatientAllergiesPage /> },
+        ],
+      },
+    ],
+  },
+
+  // ── Doctor Space ───────────────────────────────
+  {
+    path: '/doctor',
+    element: <PrivateRoute allowedRoles={['DOCTOR', 'ADMIN']} />,
+    children: [
+      {
+        element: <AppLayout />,
+        children: [
+          { path: 'dashboard',         element: <DashboardPage /> },
+          { path: 'patients/:id',      element: <DoctorPatientView /> },
+          { path: 'patients/:id/consultation', element: <ConsultationPage /> },
+          { path: 'patients/:id/prescription', element: <CreatePrescriptionPage /> },
+          { path: 'consultations',     element: <div style={{padding:24}}>Mes consultations — soon</div> },
+          { path: 'prescriptions',     element: <PrescriptionsPage /> },
+        ],
+      },
+    ],
+  },
+
+  // ── Admin routes ────────────────────────────────
+  {
+    path: '/admin',
+    element: (
+      <PrivateRoute allowedRoles={['ADMIN']} />
+    ),
+    children: [
+      {
+        element: <AppLayout />,
+        children: [
+          { index: true, element: <AdminUsersPage /> },
         ],
       },
     ],

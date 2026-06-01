@@ -2,24 +2,29 @@ import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../features/auth/services/authService';
+import { NotificationProvider } from '../../features/notifications/context/NotificationContext';
+import NotificationBell from '../../features/notifications/components/NotificationBell';
 
 const NAV = {
   PATIENT: [
-    { to: '/app/dashboard', label: 'Tableau de bord', icon: 'grid' },
+    { to: '/patient/dashboard', label: 'Tableau de bord', icon: 'grid' },
+    { to: '/patient/dmp', label: 'Dossier Médical (DMP)', icon: 'file' },
+    { to: '/patient/vitals', label: 'Suivi Vital', icon: 'heart' },
+    { to: '/patient/consent', label: 'Contrôle d\'accès', icon: 'user' },
+    { to: '/patient/documents', label: 'Mes documents', icon: 'file' },
     { to: '/app/appointments', label: 'Mes rendez-vous', icon: 'calendar' },
-    { to: '/app/medical-records', label: 'Dossier médical', icon: 'file' },
     { to: '/app/prescriptions', label: 'Ordonnances', icon: 'pill' },
-    { to: '/app/messages', label: 'Messagerie', icon: 'message' },
+    { to: '/app/teleconsult', label: 'Vidéo consultation', icon: 'video' },
     { to: '/app/profile', label: 'Mon profil', icon: 'user' },
-    { to: '/app/patient-profile', label: 'Profil médical', icon: 'heart' },
     { to: '/app/doctors', label: 'Médecins', icon: 'search' },
+    { to: '/app/become-doctor', label: 'Devenir Médecin', icon: 'badge' },
   ],
   DOCTOR: [
-    { to: '/app/dashboard', label: 'Tableau de bord', icon: 'grid' },
-    { to: '/app/patients', label: 'Mes patients', icon: 'users' },
-    { to: '/app/schedule', label: 'Planning', icon: 'calendar' },
-    { to: '/app/prescriptions', label: 'Prescriptions', icon: 'pill' },
-    { to: '/app/messages', label: 'Messagerie', icon: 'message' },
+    { to: '/doctor/dashboard', label: 'Tableau de bord', icon: 'grid' },
+    { to: '/doctor/consultations', label: 'Mes consultations', icon: 'calendar' },
+    { to: '/doctor/prescriptions', label: 'Prescriptions', icon: 'pill' },
+    { to: '/app/teleconsult', label: 'Téléconsultation', icon: 'video' },
+    { to: '/app/messages',    label: 'Messagerie', icon: 'message' },
     { to: '/app/profile', label: 'Mon profil', icon: 'user' },
   ],
   PHARMACIST: [
@@ -46,7 +51,9 @@ const Icon = ({ name, size = 20, color = 'currentColor' }) => {
     case 'bell': return <svg {...props}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>;
     case 'user': return <svg {...props}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
     case 'heart': return <svg {...props}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>;
+    case 'video': return <svg {...props}><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>;
     case 'search': return <svg {...props}><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>;
+    case 'badge': return <svg {...props}><circle cx="12" cy="8" r="6"/><path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12"/></svg>;
     default: return null;
   }
 };
@@ -77,6 +84,7 @@ export default function AppLayout() {
   };
 
   return (
+    <NotificationProvider>
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc', fontFamily: "'DM Sans',sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap');
@@ -110,7 +118,7 @@ export default function AppLayout() {
           </div>
           {!collapsed && (
             <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '1.1rem', color: '#111827', whiteSpace: 'nowrap' }}>
-              Dawini
+              MedConnect
             </span>
           )}
         </div>
@@ -175,15 +183,8 @@ export default function AppLayout() {
             </svg>
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', position: 'relative', color: '#6b7280' }}>
-              <Icon name="bell" size={20} />
-              <span style={{
-                position: 'absolute', top: -2, right: -2,
-                width: 8, height: 8, borderRadius: '50%',
-                background: '#2ecc71', border: '1.5px solid white',
-              }} />
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <NotificationBell />
             <div style={{
               width: 34, height: 34, borderRadius: '50%',
               background: 'linear-gradient(135deg, #a7f3d0, #6ee7b7)',
@@ -202,5 +203,6 @@ export default function AppLayout() {
         </main>
       </div>
     </div>
+    </NotificationProvider>
   );
 }

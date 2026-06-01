@@ -2,7 +2,7 @@
   "nav": { "home": "Accueil", "howitworks": "Comment ça marche", "about": "À propos", "contact": "Prendre RDV" },
   "hero": {
     "title": { "line1": "Votre soin,", "line2": "intelligent", "line3": "& connecté" },
-    "subtitle": "Dawini connecte patients, médecins et pharmacies sur une seule plateforme sécurisée. Prenez rendez-vous, consultez vos dossiers et gérez vos ordonnances en ligne.",
+    "subtitle": "MedConnect connecte patients, médecins et pharmacies sur une seule plateforme sécurisée. Prenez rendez-vous, consultez vos dossiers et gérez vos ordonnances en ligne.",
     "cta": { "primary": "Commencer maintenant" },
     "trusted": "patients nous font confiance",
     "card1": "Récompenses", "card2": "Patients traités",
@@ -22,8 +22,8 @@
     "messaging":     { "title": "Messagerie sécurisée",     "desc": "Communiquez avec votre équipe médicale de façon confidentielle et chiffrée." }
   },
   "about": {
-    "title": "Vos médecins sont excellents, Dawini les rend encore meilleurs",
-    "desc1": "Dawini permet aux médecins d'avoir plus d'impact sur leurs patients en leur fournissant les bonnes informations au bon moment.",
+    "title": "Vos médecins sont excellents, MedConnect les rend encore meilleurs",
+    "desc1": "MedConnect permet aux médecins d'avoir plus d'impact sur leurs patients en leur fournissant les bonnes informations au bon moment.",
     "desc2": "Notre plateforme détecte les signaux critiques, permettant à vos médecins d'intervenir rapidement avant qu'une situation ne s'aggrave.",
     "cta": "Commencer maintenant"
   },
@@ -32,5 +32,23 @@
     "doctor":   { "name": "Médecin",   "desc": "Planning, patients, prescriptions" },
     "pharmacy": { "name": "Pharmacie", "desc": "Ordonnances & commandes" }
   },
-  "footer": { "copy": "© 2024 Dawini — Plateforme médicale connectée", "privacy": "Confidentialité", "contact": "Contact" }
+  "footer": { "copy": "© 2024 MedConnect — Plateforme médicale connectée", "privacy": "Confidentialité", "contact": "Contact" },
+  "common": {
+    "reset": "Réinitialiser"
+  },
+  "doctors": {
+    "title": "Trouver un médecin",
+    "subtitle": "Recherchez parmi nos praticiens qualifiés et prenez rendez-vous en ligne.",
+    "city_placeholder": "Rechercher par ville...",
+    "specialty": "Spécialité",
+    "all_specialties": "Toutes les spécialités",
+    "language": "Langue",
+    "language_placeholder": "Ex: Français, Arabe...",
+    "results_count": "{{count}} médecins trouvés",
+    "no_results": "Aucun résultat trouvé",
+    "no_results_sub": "Essayez de modifier vos filtres ou votre recherche.",
+    "error_load": "Erreur lors du chargement des médecins. Veuillez réessayer.",
+    "cta_book": "Prendre RDV",
+    "cta_profile": "Voir profil"
+  }
 }

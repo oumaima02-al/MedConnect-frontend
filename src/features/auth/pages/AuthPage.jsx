@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import LoginForm from '../components/LoginForm';
 import RegisterForm from '../components/RegisterForm';
@@ -7,7 +7,7 @@ import OtpVerification from '../components/OtpVerification';
 const DOCTOR_IMG = 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=600&q=80&fit=crop&crop=faces';
 
 const TABS = [
-  { key: 'login',    label: 'Connexion' },
+  { key: 'login', label: 'Connexion' },
   { key: 'register', label: 'Inscription' },
 ];
 
@@ -16,9 +16,17 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const isVerified = searchParams.get('verified') === 'true';
 
-  const [tab,           setTab]           = useState('login');
-  const [step,          setStep]          = useState('form');   // 'form' | 'otp' | 'forgot'
-  const [pendingEmail,  setPendingEmail]  = useState('');
+  const [tab, setTab] = useState('login');
+  const [step, setStep] = useState('form');   // 'form' | 'otp' | 'forgot'
+  const [pendingEmail, setPendingEmail] = useState('');
+
+  // If verified param exists → ensure we are on login form
+  useEffect(() => {
+    if (isVerified) {
+      setTab('login');
+      setStep('form');
+    }
+  }, [isVerified]);
 
   // After register → show OTP
   const onRegisterSuccess = (email) => {
@@ -83,11 +91,11 @@ export default function AuthPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           </div>
           <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '1.1rem', color: '#111827' }}>
-            Dawini
+            MedConnect
           </span>
         </Link>
 
@@ -114,7 +122,7 @@ export default function AuthPage() {
           textAlign: 'center',
         }}>
           <p style={{ fontSize: '0.9rem', color: '#374151', lineHeight: 1.7, fontStyle: 'italic', marginBottom: 12 }}>
-            "Dawini a transformé ma façon de gérer mes patients. Tout est centralisé et sécurisé."
+            "MedConnect a transformé ma façon de gérer mes patients. Tout est centralisé et sécurisé."
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
             <div style={{
@@ -122,10 +130,10 @@ export default function AuthPage() {
               background: 'linear-gradient(135deg, #a7f3d0, #6ee7b7)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: 13, color: '#065f46',
-            }}>SB</div>
+            }}>AB</div>
             <div>
               <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '0.85rem', color: '#111827' }}>
-                Dr. Sara Benali
+                Dr. Ayoub Benali
               </div>
               <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>Cardiologue — Casablanca</div>
             </div>
@@ -140,7 +148,7 @@ export default function AuthPage() {
           {[
             { val: '20K+', label: 'Patients' },
             { val: '200+', label: 'Médecins' },
-            { val: '95%',  label: 'Satisfaction' },
+            { val: '95%', label: 'Satisfaction' },
           ].map(s => (
             <div key={s.label} style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: '1.2rem', color: '#111827' }}>
@@ -192,7 +200,7 @@ export default function AuthPage() {
                 </h1>
                 <p style={{ fontSize: '0.9rem', color: '#6b7280' }}>
                   {tab === 'login'
-                    ? 'Connectez-vous à votre espace Dawini'
+                    ? 'Connectez-vous à votre espace MedConnect'
                     : 'Rejoignez des milliers de professionnels de santé'}
                 </p>
               </div>

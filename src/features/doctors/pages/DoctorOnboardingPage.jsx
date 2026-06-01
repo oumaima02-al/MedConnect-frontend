@@ -226,7 +226,7 @@ export default function DoctorOnboardingPage() {
         city:                           data.city,
         clinicName:                     data.clinicName,
       });
-      localStorage.setItem(`dawini_onboarded_${user?.id}`, 'true');
+      localStorage.setItem(`MedConnect_onboarded_${user?.id}`, 'true');
       setSuccess(true);
       setTimeout(() => navigate('/app/dashboard'), 1500);
     } catch (err) {
@@ -293,7 +293,7 @@ export default function DoctorOnboardingPage() {
             Complétez votre profil médecin
           </h1>
           <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>
-            Renseignez vos coordonnées professionnelles pour rejoindre Dawini
+            Renseignez vos coordonnées professionnelles pour rejoindre MedConnect
           </p>
         </div>
 

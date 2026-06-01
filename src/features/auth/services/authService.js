@@ -7,8 +7,8 @@ export const authService = {
     api.post('/auth/signup', { email, password, nom, prenom, telephone, role }),
 
   // ─── VERIFY EMAIL OTP ─────────────────────────────────
-  verifyEmail: ({ email, otp }) =>
-    api.post('/auth/verify-email', { email, code: otp }),
+  verifyEmail: ({ email, otp, code }) =>
+    api.post('/auth/verify-email', { email, code: code || otp }),
 
   // ─── RESEND OTP ───────────────────────────────────────
   resendOtp: ({ email }) =>
@@ -61,22 +61,22 @@ export const authService = {
       email: data.email,
       role: normalizedRole,
     };
-    localStorage.setItem('dawini_access_token',  token || '');
-    localStorage.setItem('dawini_refresh_token', data.refreshToken || '');
-    localStorage.setItem('dawini_user',          JSON.stringify(userObj));
-    localStorage.setItem('dawini_role',          normalizedRole);
+    localStorage.setItem('MedConnect_access_token',  token || '');
+    localStorage.setItem('MedConnect_refresh_token', data.refreshToken || '');
+    localStorage.setItem('MedConnect_user',          JSON.stringify(userObj));
+    localStorage.setItem('MedConnect_role',          normalizedRole);
   },
 
   clearSession: () => {
-    ['dawini_access_token','dawini_refresh_token','dawini_user','dawini_role']
+    ['MedConnect_access_token','MedConnect_refresh_token','MedConnect_user','MedConnect_role']
       .forEach(k => localStorage.removeItem(k));
   },
 
   getStoredUser: () => {
-    try { return JSON.parse(localStorage.getItem('dawini_user')); }
+    try { return JSON.parse(localStorage.getItem('MedConnect_user')); }
     catch { return null; }
   },
 
-  getStoredRole: () => localStorage.getItem('dawini_role'),
-  getAccessToken: () => localStorage.getItem('dawini_access_token'),
+  getStoredRole: () => localStorage.getItem('MedConnect_role'),
+  getAccessToken: () => localStorage.getItem('MedConnect_access_token'),
 };

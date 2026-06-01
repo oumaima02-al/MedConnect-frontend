@@ -216,7 +216,7 @@ export default function PharmacistOnboardingPage() {
         openingHours:                   data.openingHours,
         deliveryAvailable:              data.deliveryAvailable || false,
       });
-      localStorage.setItem(`dawini_onboarded_${user?.id}`, 'true');
+      localStorage.setItem(`MedConnect_onboarded_${user?.id}`, 'true');
       setSuccess(true);
       setTimeout(() => navigate('/app/dashboard'), 1500);
     } catch (err) {
@@ -284,7 +284,7 @@ export default function PharmacistOnboardingPage() {
             Complétez votre profil pharmacien
           </h1>
           <p style={{ fontSize: '0.85rem', color: '#6b7280' }}>
-            Renseignez les détails de votre officine pour rejoindre Dawini
+            Renseignez les détails de votre officine pour rejoindre MedConnect
           </p>
         </div>
 
