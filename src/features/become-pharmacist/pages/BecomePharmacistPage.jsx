@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
-import { doctorService } from '../../doctors/services/doctorService';
+import { pharmacistService } from '../../pharmacists/services/pharmacistService';
 import { documentService } from '../../../services/documentService';
-import { useDoctorStatus } from '../hooks/useDoctorStatus';
+import { usePharmacistStatus } from '../hooks/usePharmacistStatus';
 
 import Stepper from '../components/Stepper';
-import DoctorForm from '../components/DoctorForm';
+import PharmacistForm from '../components/PharmacistForm';
 import DocumentUpload from '../components/DocumentUpload';
 import StatusCard from '../components/StatusCard';
 
@@ -69,7 +69,7 @@ function SuccessScreen({ onGoToDashboard }) {
           Demande soumise avec succès !
         </h2>
         <p style={{ fontSize: '0.9rem', color: '#6b7280', lineHeight: 1.7, maxWidth: 440 }}>
-          Votre demande est en cours de validation. Notre équipe administrative examinera vos informations et documents sous <strong>48 à 72 heures ouvrables</strong>. Vous recevrez une notification dès qu'une décision sera prise.
+          Votre demande est en cours de validation. Notre équipe administrative examinera vos informations et documents sous <strong>48 à 72 heures ouvrables</strong>. Vous recevrez une notification d'ici peu.
         </p>
       </div>
 
@@ -88,7 +88,7 @@ function SuccessScreen({ onGoToDashboard }) {
       </div>
 
       <button
-        id="bd-go-dashboard"
+        id="bp-go-dashboard"
         onClick={onGoToDashboard}
         style={{
           padding: '12px 32px', borderRadius: 12,
@@ -109,20 +109,24 @@ function SuccessScreen({ onGoToDashboard }) {
 
 /* ── INITIAL FORM VALUES ─────────────────────────────────────────── */
 const INITIAL_FORM = {
-  specialty: '', professionalRegistrationNumber: '',
-  nationalIdNumber: '', registrationAuthority: '',
-  languages: [], city: '', clinicName: '',
+  professionalRegistrationNumber: '',
+  nationalIdNumber: '', 
+  registrationAuthority: '',
+  pharmacyName: '', 
+  city: '', 
+  openingHours: '',
+  deliveryAvailable: false,
 };
 
 const INITIAL_FILES = { cardFrontImage: null, cardBackImage: null };
 const INITIAL_PREVIEWS = { cardFrontImage: null, cardBackImage: null };
 
 /* ── MAIN PAGE ───────────────────────────────────────────────────── */
-export default function BecomeDoctorPage() {
+export default function BecomePharmacistPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const { status, isLoading: statusLoading, refetch } = useDoctorStatus(user?.id);
+  const { status, isLoading: statusLoading, refetch } = usePharmacistStatus(user?.id);
 
   const [step, setStep] = useState(0);      // 0=Info, 1=Docs, 2=Confirmation
   const [done, setDone] = useState(false);  // final success screen
@@ -161,9 +165,10 @@ export default function BecomeDoctorPage() {
   /* ── Step 0 validation ──────────────────────────────────────────── */
   const validateStep0 = () => {
     const errs = {};
-    if (!form.specialty) errs.specialty = 'La spécialité est requise.';
     if (!form.professionalRegistrationNumber.trim()) errs.professionalRegistrationNumber = 'Ce champ est requis.';
     if (!form.nationalIdNumber.trim()) errs.nationalIdNumber = 'Ce champ est requis.';
+    if (!form.pharmacyName.trim()) errs.pharmacyName = 'Le nom de la pharmacie est requis.';
+    if (!form.city.trim()) errs.city = 'La ville est requise.';
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -188,38 +193,38 @@ export default function BecomeDoctorPage() {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      // 1. Create doctor profile
-      await doctorService.createProfile({
+      // Step 1: Upload FRONT document
+      const frontRes = await documentService.upload(user?.id, 'PHARMACIST', 'FRONT', files.cardFrontImage);
+      const cardFrontImageUrl = frontRes?.data?.url || frontRes?.data?.path || 'uploaded';
+
+      // Step 2: Upload BACK document
+      const backRes = await documentService.upload(user?.id, 'PHARMACIST', 'BACK', files.cardBackImage);
+      const cardBackImageUrl = backRes?.data?.url || backRes?.data?.path || 'uploaded';
+
+      // Step 3: Send pharmacist profile with document URLs
+      await pharmacistService.createProfile({
         userId: user?.id,
-        ...form
+        ...form,
+        cardFrontImageUrl,
+        cardBackImageUrl,
       });
 
-      // 2. Upload documents — formData fields match backend expectations
-      const uploads = [];
-      if (files.cardFrontImage) {
-        uploads.push(documentService.upload(user?.id, 'DOCTOR', 'FRONT', files.cardFrontImage));
-      }
-      if (files.cardBackImage) {
-        uploads.push(documentService.upload(user?.id, 'DOCTOR', 'BACK', files.cardBackImage));
-      }
-      await Promise.all(uploads);
-
-      // Verify documents are saved
+      // Step 4: Verify documents are persisted in backend
       try {
         const verifyRes = await documentService.getDocumentsByUser(user?.id);
         const docs = verifyRes.data?.data || verifyRes.data || [];
         if (docs.length < 2) {
-          console.warn('[BecomeDoctor] Not all documents verified in DB yet.', docs);
+          console.warn('[BecomePharmacist] Not all documents confirmed in DB yet:', docs);
         } else {
-          console.log('[BecomeDoctor] Documents fully saved and verified:', docs);
+          console.log('[BecomePharmacist] All documents saved and verified ✓', docs);
         }
       } catch (verifyErr) {
-        console.error('[BecomeDoctor] Failed to verify documents:', verifyErr);
-        // Do not block submission success if verification throws, as upload succeeded
+        // Non-blocking — upload already succeeded
+        console.error('[BecomePharmacist] Post-upload verification failed:', verifyErr);
       }
 
       // Persist status locally so dashboard updates immediately
-      localStorage.setItem('MedConnect_doctor_status', 'PENDING');
+      localStorage.setItem('MedConnect_pharmacist_status', 'PENDING');
 
       showToast('Votre demande a été soumise avec succès !');
       setDone(true);
@@ -241,7 +246,7 @@ export default function BecomeDoctorPage() {
     setFileErrors({});
     setStep(0);
     setDone(false);
-    localStorage.removeItem('MedConnect_doctor_status');
+    localStorage.removeItem('MedConnect_pharmacist_status');
     refetch();
   };
 
@@ -280,10 +285,10 @@ export default function BecomeDoctorPage() {
               </div>
               <div>
                 <h1 style={{ fontFamily: "'Sora',sans-serif", fontSize: '1.5rem', fontWeight: 800, color: '#111827', marginBottom: 2 }}>
-                  Devenir Médecin
+                  Devenir Pharmacien
                 </h1>
                 <p style={{ fontSize: '0.88rem', color: '#9ca3af' }}>
-                  Rejoignez le réseau MediConnect en tant que professionnel de santé
+                  Rejoignez le réseau MediConnect en tant que pharmacien
                 </p>
               </div>
             </div>
@@ -323,10 +328,10 @@ export default function BecomeDoctorPage() {
                           Informations professionnelles
                         </h2>
                         <p style={{ fontSize: '0.84rem', color: '#9ca3af' }}>
-                          Renseignez vos informations médicales afin que nous puissions vérifier votre profil.
+                          Renseignez vos informations de pharmacie afin que nous puissions vérifier votre profil.
                         </p>
                       </div>
-                      <DoctorForm
+                      <PharmacistForm
                         values={form}
                         onChange={(patch) => setForm(f => ({ ...f, ...patch }))}
                         errors={formErrors}
@@ -373,13 +378,13 @@ export default function BecomeDoctorPage() {
                         </p>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px' }}>
                           {[
-                            ['Spécialité',        form.specialty],
+                            ['Nom Pharmacie',     form.pharmacyName],
                             ['N° inscription',    form.professionalRegistrationNumber],
                             ['CIN / CNIE',        form.nationalIdNumber],
                             ['Autorité',          form.registrationAuthority || '—'],
                             ['Ville',             form.city || '—'],
-                            ['Clinique / Cabinet',form.clinicName || '—'],
-                            ['Langues',           (form.languages || []).join(', ') || '—'],
+                            ['Horaires',          form.openingHours || '—'],
+                            ['Livraison',         form.deliveryAvailable ? 'Oui' : 'Non'],
                             ['Documents',         [files.cardFrontImage && 'Recto ✓', files.cardBackImage && 'Verso ✓'].filter(Boolean).join(', ')],
                           ].map(([k, v]) => (
                             <div key={k}>
@@ -406,7 +411,7 @@ export default function BecomeDoctorPage() {
                   {/* ── Navigation buttons ────────────────── */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 36, paddingTop: 24, borderTop: '1px solid #f3f4f6' }}>
                     <button
-                      id="bd-prev-btn"
+                      id="bp-prev-btn"
                       type="button"
                       onClick={() => setStep(s => s - 1)}
                       disabled={step === 0}
@@ -424,7 +429,7 @@ export default function BecomeDoctorPage() {
 
                     {step < 2 ? (
                       <button
-                        id="bd-next-btn"
+                        id="bp-next-btn"
                         type="button"
                         onClick={handleNext}
                         style={{
@@ -443,7 +448,7 @@ export default function BecomeDoctorPage() {
                       </button>
                     ) : (
                       <button
-                        id="bd-submit-btn"
+                        id="bp-submit-btn"
                         type="button"
                         onClick={handleSubmit}
                         disabled={submitting}

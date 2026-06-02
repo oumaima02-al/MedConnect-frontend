@@ -8,8 +8,8 @@ import { useSession, useSessionStatus, useChat, useRecording, useScreenShare } f
 // ─── Chat Pane ────────────────────────────────────────────────
 function ChatPane({ sessionId, userId }) {
   const { chat, sending, send } = useChat(sessionId);
-  const [msg, setMsg]           = useState('');
-  const bottomRef               = useRef(null);
+  const [msg, setMsg] = useState('');
+  const bottomRef = useRef(null);
 
   const messages = chat?.messages || [];
 
@@ -82,9 +82,9 @@ function ChatPane({ sessionId, userId }) {
 
 // ─── Join Link Modal ──────────────────────────────────────────
 function JoinLinkModal({ open, onClose, sessionId, getJoinLink }) {
-  const [role, setRole]     = useState('PATIENT');
+  const [role, setRole] = useState('PATIENT');
   const [linkData, setLink] = useState(null);
-  const [loading, setLoad]  = useState(false);
+  const [loading, setLoad] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const fetch = async () => {
@@ -147,11 +147,11 @@ function JoinLinkModal({ open, onClose, sessionId, getJoinLink }) {
 
 // ─── Image Share Modal ────────────────────────────────────────
 function ImageShareModal({ open, onClose, sessionId, shareImage }) {
-  const [b64, setB64]         = useState('');
+  const [b64, setB64] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [err, setErr]         = useState('');
-  const fileRef               = useRef(null);
+  const [err, setErr] = useState('');
+  const fileRef = useRef(null);
 
   const handleFile = (e) => {
     const file = e.target.files[0];
@@ -210,8 +210,8 @@ function ImageShareModal({ open, onClose, sessionId, shareImage }) {
 // ─── Recording Controls ───────────────────────────────────────
 function RecordingControls({ sessionId, isDoctor }) {
   const { recording, start, stop } = useRecording(sessionId);
-  const [err, setErr]               = useState('');
-  const [busy, setBusy]             = useState(false);
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
 
   const isRecording = recording && recording.startedAt && !recording.stoppedAt;
 
@@ -255,23 +255,23 @@ function RecordingControls({ sessionId, isDoctor }) {
 // ─── Session Room (main component) ───────────────────────────
 export default function SessionRoom({ session, onEnd, currentUserId, isDoctor }) {
   const { start, end, getJoinLink, data: sessionData, refresh } = useSession(session?.sessionId || session?.id);
-  const { status: liveStatus }                                    = useSessionStatus(session?.sessionId || session?.id, 5000);
-  const { sharing, startShare, stopShare, shareImage }            = useScreenShare(session?.sessionId || session?.id, currentUserId);
+  const { status: liveStatus } = useSessionStatus(session?.sessionId || session?.id, 5000);
+  const { sharing, startShare, stopShare, shareImage } = useScreenShare(session?.sessionId || session?.id, currentUserId);
 
-  const [chatOpen, setChatOpen]     = useState(false);
-  const [linkOpen, setLinkOpen]     = useState(false);
-  const [imgOpen, setImgOpen]       = useState(false);
-  const [ending, setEnding]         = useState(false);
-  const [starting, setStarting]     = useState(false);
-  const [startErr, setStartErr]     = useState('');
-  const [muted, setMuted]           = useState(false);
-  const [camOff, setCamOff]         = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [imgOpen, setImgOpen] = useState(false);
+  const [ending, setEnding] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [startErr, setStartErr] = useState('');
+  const [muted, setMuted] = useState(false);
+  const [camOff, setCamOff] = useState(false);
 
-  const sid      = session?.sessionId || session?.id;
-  const status   = liveStatus?.status || sessionData?.status || session?.status;
+  const sid = session?.sessionId || session?.id;
+  const status = liveStatus?.status || sessionData?.status || session?.status;
   const isActive = status === 'ACTIVE';
-  const isEnded  = status === 'ENDED' || status === 'FORCE_ENDED';
-  const unread   = 0; // Would track real unread msgs
+  const isEnded = status === 'ENDED' || status === 'FORCE_ENDED';
+  const unread = 0; // Would track real unread msgs
 
   const handleStart = async () => {
     setStarting(true);

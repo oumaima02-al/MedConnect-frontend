@@ -12,6 +12,7 @@ import PrescriptionsPage from '../features/prescriptions/pages/PrescriptionsPage
 import AppointmentsPage from '../features/appointments/pages/AppointmentsPage';
 import TeleconsultPage from '../features/teleconsult/pages/TeleconsultPage';
 import BecomeDoctorPage from '../features/become-doctor/pages/BecomeDoctorPage';
+import BecomePharmacistPage from '../features/become-pharmacist/pages/BecomePharmacistPage';
 import AdminUsersPage from '../features/admin/pages/AdminUsersPage';
 import PatientDmpPage from '../features/patient/pages/PatientDmpPage';
 import VitalsPage from '../features/patient/pages/VitalsPage';
@@ -64,6 +65,7 @@ const router = createBrowserRouter([
 
           { path: 'patient-profile', element: <PatientProfilePage /> },
           { path: 'become-doctor',   element: <BecomeDoctorPage /> },
+          { path: 'become-pharmacist', element: <BecomePharmacistPage /> },
 
           { path: 'doctors', element: <DoctorSearchPage /> },
         ],
