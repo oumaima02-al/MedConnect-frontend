@@ -17,7 +17,8 @@ const NAV = {
     { to: '/app/teleconsult', label: 'Vidéo consultation', icon: 'video' },
     { to: '/app/profile', label: 'Mon profil', icon: 'user' },
     { to: '/app/doctors', label: 'Médecins', icon: 'search' },
-    { to: '/app/become-doctor', label: 'Devenir Médecin', icon: 'badge' },
+    { to: '/app/become-doctor',     label: 'Devenir Médecin',      icon: 'badge'    },
+    { to: '/app/become-pharmacist', label: 'Devenir Pharmacien',   icon: 'pharmacy' },
   ],
   DOCTOR: [
     { to: '/doctor/dashboard', label: 'Tableau de bord', icon: 'grid' },
@@ -54,6 +55,7 @@ const Icon = ({ name, size = 20, color = 'currentColor' }) => {
     case 'video': return <svg {...props}><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>;
     case 'search': return <svg {...props}><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>;
     case 'badge': return <svg {...props}><circle cx="12" cy="8" r="6"/><path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12"/></svg>;
+    case 'pharmacy': return <svg {...props}><path d="M3 9h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>;
     default: return null;
   }
 };

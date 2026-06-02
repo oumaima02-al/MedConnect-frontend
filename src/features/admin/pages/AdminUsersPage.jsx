@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAdminUsers, useAdminUserActions } from '../hooks/useAdmin';
 import { doctorService } from '../../doctors/services/doctorService';
-import { pharmacistService } from '../../profile/services/pharmacistService';
+import { pharmacistService } from '../../pharmacists/services/pharmacistService';
 import { adminService } from '../services/adminService';
+import AdminDocumentViewer from '../components/AdminDocumentViewer';
 
 const ROLES = ['PATIENT', 'DOCTOR', 'PHARMACIST', 'ADMIN'];
 
@@ -255,50 +256,58 @@ function AuditsPanel() {
     setLoading(true);
     setError('');
     try {
-      const res = await adminService.getUsers({ page: 0, size: 100 });
+      const res = await adminService.getUsers({ page: 0, size: 200 });
       const usersList = res.data?.data?.content || res.data?.content || res.data || [];
-      // Any user could have a pending profile, but we focus on those with relevant roles
-      const filterPros = usersList.filter(u => {
-        const r = u.role || u.roles?.[0]?.replace('ROLE_', '') || '';
-        return r === 'DOCTOR' || r === 'PHARMACIST' || r === 'PATIENT';
+
+      // Include ALL non-admin users — a user with role USER/PATIENT can have a pending profile
+      const candidates = usersList.filter(u => {
+        const r = (u.role || u.roles?.[0] || '').replace('ROLE_', '').toUpperCase();
+        return r !== 'ADMIN';
       });
-      
-      const resolved = await Promise.all(
-        filterPros.map(async (u) => {
+
+      const resolved = await Promise.allSettled(
+        candidates.map(async (u) => {
+          const userRole = (u.role || u.roles?.[0] || '').replace('ROLE_', '').toUpperCase();
+
+          let pRes = null;
+          let activeRole = userRole;
+
+          // Try DOCTOR profile first
           try {
-            let pRes;
-            const userRole = u.role || u.roles?.[0]?.replace('ROLE_', '') || '';
-            
-            // Try to find a profile in either service
-            // A PATIENT might have a DOCTOR profile waiting for verification
+            const r = await doctorService.getProfile(u.id);
+            const profile = r?.data?.data || r?.data;
+            if (profile && Object.keys(profile).length > 0) {
+              pRes = profile;
+              activeRole = 'DOCTOR';
+            }
+          } catch (e) { /* 404 = no doctor profile */ }
+
+          // If no doctor profile, try PHARMACIST
+          if (!pRes) {
             try {
-              pRes = await doctorService.getProfile(u.id);
-            } catch (e) {
-              try {
-                pRes = await pharmacistService.getProfile(u.id);
-              } catch (e2) {
-                throw new Error('No profile found');
+              const r = await pharmacistService.getProfile(u.id);
+              const profile = r?.data?.data || r?.data;
+              if (profile && Object.keys(profile).length > 0) {
+                pRes = profile;
+                activeRole = 'PHARMACIST';
               }
-            }
-            
-            const profile = pRes?.data?.data || pRes?.data;
-            if (!profile) throw new Error('No profile content');
-
-            // Detemine actual application type from profile fields if user is still PATIENT
-            let activeRole = userRole;
-            if (userRole === 'PATIENT') {
-               if (profile.specialty || profile.professionalRegistrationNumber) activeRole = 'DOCTOR';
-               else if (profile.pharmacyName) activeRole = 'PHARMACIST';
-            }
-
-            return { ...u, activeRole, profile, hasProfile: true };
-          } catch (e) {
-            return { ...u, profile: null, hasProfile: false };
+            } catch (e) { /* 404 = no pharmacist profile */ }
           }
+
+          if (!pRes) return null; // No profile found for this user
+
+          return { ...u, activeRole, profile: pRes, hasProfile: true };
         })
       );
-      setPros(resolved.filter(x => x.hasProfile));
+
+      // Keep only fulfilled results that found a profile
+      const withProfiles = resolved
+        .filter(r => r.status === 'fulfilled' && r.value !== null)
+        .map(r => r.value);
+
+      setPros(withProfiles);
     } catch (err) {
+      console.error('[AuditsPanel] loadData error:', err);
       setError('Impossible de charger les dossiers pour audit.');
     } finally {
       setLoading(false);
@@ -346,7 +355,8 @@ function AuditsPanel() {
   };
 
   const getProfileStatus = (p) => {
-    if (p.profile?.status) return p.profile.status;
+    const st = p.profile?.verificationStatus || p.profile?.status;
+    if (st) return String(st).toUpperCase();
     return p.profile?.verified ? 'VERIFIED' : 'PENDING';
   };
 
@@ -557,49 +567,7 @@ function AuditsPanel() {
                   <h4 style={{ fontFamily: "'Sora', sans-serif", fontSize: '0.8rem', color: '#0f172a', fontWeight: 700, marginBottom: 10 }}>
                     Documents Professionnels
                   </h4>
-                  <div style={{ display: 'flex', gap: 14 }}>
-                    {[
-                      { key: 'Front', label: 'Recto Carte Pro', url: profile?.cardFrontImageUrl },
-                      { key: 'Back', label: 'Verso Carte Pro', url: profile?.cardBackImageUrl },
-                    ].map(side => (
-                      <div
-                        key={side.key}
-                        onClick={() => side.url && setLightbox({ src: side.url, title: `${side.label} - ${p.prenom} ${p.nom}` })}
-                        style={{
-                          flex: 1,
-                          height: 100,
-                          borderRadius: 12,
-                          border: '1.5px solid #e2e8f0',
-                          background: '#f8fafc',
-                          backgroundImage: side.url ? `url(${side.url})` : 'none',
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                          position: 'relative',
-                          cursor: side.url ? 'pointer' : 'default',
-                          overflow: 'hidden',
-                          transition: 'transform 0.2s',
-                        }}
-                        onMouseEnter={e => { if (side.url) e.currentTarget.style.transform = 'scale(1.02)'; }}
-                        onMouseLeave={e => { if (side.url) e.currentTarget.style.transform = 'scale(1)'; }}
-                      >
-                        {!side.url && (
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '0.72rem', color: '#94a3b8' }}>
-                            Aucun fichier
-                          </div>
-                        )}
-                        {side.url && (
-                          <div style={{
-                            position: 'absolute', bottom: 0, insetInline: 0,
-                            background: 'rgba(15, 23, 42, 0.65)', color: 'white',
-                            fontSize: '0.7rem', fontWeight: 600, padding: '4px 8px',
-                            textAlign: 'center', backdropFilter: 'blur(4px)'
-                          }}>
-                            {side.label}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                  <AdminDocumentViewer userId={p.id} userName={`${p.prenom} ${p.nom}`} />
                 </div>
 
                 {/* Footer Buttons */}
