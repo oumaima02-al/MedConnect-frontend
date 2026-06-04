@@ -4,7 +4,7 @@ import { doctorService } from '../../doctors/services/doctorService';
 /**
  * Fetches the doctor application status for the current user.
  * Returns { status, isLoading, isError, refetch }
- * status: null | 'PENDING' | 'VERIFIED' | 'REJECTED'
+ * status: 'NOT_APPLIED' | 'PENDING' | 'VERIFIED' | 'REJECTED'
  */
 export function useDoctorStatus(userId) {
   const [status, setStatus] = useState(null);
@@ -17,13 +17,13 @@ export function useDoctorStatus(userId) {
     setIsError(false);
     try {
       const { data } = await doctorService.getProfile(userId);
-      // Backend returns profile with status field
+      // Backend returns profile with verificationStatus field
       const profile = data?.data || data;
-      setStatus(profile?.status || (profile?.verified ? 'VERIFIED' : 'PENDING'));
+      setStatus(profile?.verificationStatus || profile?.status || (profile?.verified ? 'VERIFIED' : 'PENDING'));
     } catch (err) {
-      // 404 means no application submitted yet
+      // 404 means no application submitted yet — not an error
       if (err?.response?.status === 404) {
-        setStatus(null);
+        setStatus('NOT_APPLIED');
       } else {
         setIsError(true);
       }
