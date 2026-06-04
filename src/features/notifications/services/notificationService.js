@@ -1,10 +1,17 @@
 import axios from 'axios';
 
-const NOTIF_BASE = 'http://localhost:8088/api/notifications';
+const NOTIF_BASE = 'http://localhost:8080/api/notifications';
 
-const getToken = () =>
+const getAccessToken = () =>
   localStorage.getItem('MedConnect_access_token') ||
   localStorage.getItem('MedConnect_token');
+const getRefreshToken = () => localStorage.getItem('MedConnect_refresh_token');
+const clearStoredSession = () => {
+  ['MedConnect_access_token', 'MedConnect_refresh_token', 'MedConnect_user', 'MedConnect_role', 'MedConnect_token']
+    .forEach((key) => localStorage.removeItem(key));
+};
+
+let notifRefreshPromise = null;
 
 /** Dedicated axios instance for the Notification microservice */
 const notifApi = axios.create({
@@ -12,19 +19,50 @@ const notifApi = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// Attach token — skip for the refresh endpoint
 notifApi.interceptors.request.use((config) => {
-  const token = getToken();
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const isRefresh = config.url?.includes('/auth/refresh');
+  if (!isRefresh) {
+    const token = getAccessToken();
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
+// 401 → refresh token → retry
 notifApi.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    const status = err.response?.status;
-    const msg = err.response?.data?.message || err.response?.data || err.message;
-    if (status === 401) window.location.href = '/login';
-    return Promise.reject(new Error(typeof msg === 'string' ? msg : JSON.stringify(msg)));
+  (response) => response,
+  async (error) => {
+    const status = error.response?.status;
+    const originalConfig = error.config;
+    const isRefreshCall = originalConfig?.url?.includes('/auth/refresh');
+
+    if (status === 401 && originalConfig && !originalConfig._retry && !isRefreshCall) {
+      const refreshToken = getRefreshToken();
+      if (refreshToken) {
+        originalConfig._retry = true;
+        try {
+          notifRefreshPromise = notifRefreshPromise || notifApi.post('/auth/refresh', { refreshToken });
+          const { data } = await notifRefreshPromise;
+          notifRefreshPromise = null;
+          const nextToken = data.token || data.accessToken;
+          if (nextToken) {
+            localStorage.setItem('MedConnect_access_token', nextToken);
+            if (data.refreshToken) localStorage.setItem('MedConnect_refresh_token', data.refreshToken);
+            originalConfig.headers.Authorization = `Bearer ${nextToken}`;
+            return notifApi(originalConfig);
+          }
+        } catch (refreshError) {
+          notifRefreshPromise = null;
+          clearStoredSession();
+          window.location.href = '/login';
+          return Promise.reject(refreshError);
+        }
+      }
+      clearStoredSession();
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
   }
 );
 

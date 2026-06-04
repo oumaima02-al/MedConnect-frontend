@@ -1,10 +1,17 @@
 import axios from 'axios';
 
-const MESSAGING_BASE = 'http://localhost:8087/api/messages';
+const MESSAGING_BASE = 'http://localhost:8080/api/messages';
 
-const getToken = () =>
+const getAccessToken = () =>
   localStorage.getItem('MedConnect_access_token') ||
   localStorage.getItem('MedConnect_token');
+const getRefreshToken = () => localStorage.getItem('MedConnect_refresh_token');
+const clearStoredSession = () => {
+  ['MedConnect_access_token', 'MedConnect_refresh_token', 'MedConnect_user', 'MedConnect_role', 'MedConnect_token']
+    .forEach((key) => localStorage.removeItem(key));
+};
+
+let messagingRefreshPromise = null;
 
 /** Axios instance scoped to the messaging microservice */
 const messagingApi = axios.create({
@@ -12,19 +19,50 @@ const messagingApi = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// Attach token — skip for the refresh endpoint
 messagingApi.interceptors.request.use((config) => {
-  const token = getToken();
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const isRefresh = config.url?.includes('/auth/refresh');
+  if (!isRefresh) {
+    const token = getAccessToken();
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
+// 401 → refresh token → retry
 messagingApi.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    const status = err.response?.status;
-    const msg = err.response?.data?.message || err.response?.data || err.message;
-    if (status === 401) window.location.href = '/login';
-    return Promise.reject(new Error(typeof msg === 'string' ? msg : JSON.stringify(msg)));
+  (response) => response,
+  async (error) => {
+    const status = error.response?.status;
+    const originalConfig = error.config;
+    const isRefreshCall = originalConfig?.url?.includes('/auth/refresh');
+
+    if (status === 401 && originalConfig && !originalConfig._retry && !isRefreshCall) {
+      const refreshToken = getRefreshToken();
+      if (refreshToken) {
+        originalConfig._retry = true;
+        try {
+          messagingRefreshPromise = messagingRefreshPromise || messagingApi.post('/auth/refresh', { refreshToken });
+          const { data } = await messagingRefreshPromise;
+          messagingRefreshPromise = null;
+          const nextToken = data.token || data.accessToken;
+          if (nextToken) {
+            localStorage.setItem('MedConnect_access_token', nextToken);
+            if (data.refreshToken) localStorage.setItem('MedConnect_refresh_token', data.refreshToken);
+            originalConfig.headers.Authorization = `Bearer ${nextToken}`;
+            return messagingApi(originalConfig);
+          }
+        } catch (refreshError) {
+          messagingRefreshPromise = null;
+          clearStoredSession();
+          window.location.href = '/login';
+          return Promise.reject(refreshError);
+        }
+      }
+      clearStoredSession();
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
   }
 );
 

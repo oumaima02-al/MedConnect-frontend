@@ -1,19 +1,68 @@
 import axios from 'axios';
 
-// DMP service has its own base URL at port 8083
+// DMP service routed through the API Gateway at port 8080
 const dmpApi = axios.create({
-  baseURL: 'http://localhost:8083/api/dmp',
+  baseURL: 'http://localhost:8080/api/dmp',
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Attach JWT token from localStorage on every request
+const getAccessToken = () =>
+  localStorage.getItem('MedConnect_access_token') ||
+  localStorage.getItem('MedConnect_token');
+const getRefreshToken = () => localStorage.getItem('MedConnect_refresh_token');
+const clearStoredSession = () => {
+  ['MedConnect_access_token', 'MedConnect_refresh_token', 'MedConnect_user', 'MedConnect_role', 'MedConnect_token']
+    .forEach((key) => localStorage.removeItem(key));
+};
+
+let dmpRefreshPromise = null;
+
+// Attach JWT token — skip for the refresh endpoint
 dmpApi.interceptors.request.use((config) => {
-  const token =
-    localStorage.getItem('MedConnect_access_token') ||
-    localStorage.getItem('MedConnect_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const isRefresh = config.url?.includes('/auth/refresh');
+  if (!isRefresh) {
+    const token = getAccessToken();
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
+
+// 401 → refresh token → retry
+dmpApi.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const status = error.response?.status;
+    const originalConfig = error.config;
+    const isRefreshCall = originalConfig?.url?.includes('/auth/refresh');
+
+    if (status === 401 && originalConfig && !originalConfig._retry && !isRefreshCall) {
+      const refreshToken = getRefreshToken();
+      if (refreshToken) {
+        originalConfig._retry = true;
+        try {
+          dmpRefreshPromise = dmpRefreshPromise || dmpApi.post('/auth/refresh', { refreshToken });
+          const { data } = await dmpRefreshPromise;
+          dmpRefreshPromise = null;
+          const nextToken = data.token || data.accessToken;
+          if (nextToken) {
+            localStorage.setItem('MedConnect_access_token', nextToken);
+            if (data.refreshToken) localStorage.setItem('MedConnect_refresh_token', data.refreshToken);
+            originalConfig.headers.Authorization = `Bearer ${nextToken}`;
+            return dmpApi(originalConfig);
+          }
+        } catch (refreshError) {
+          dmpRefreshPromise = null;
+          clearStoredSession();
+          window.location.href = '/login';
+          return Promise.reject(refreshError);
+        }
+      }
+      clearStoredSession();
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ──────────────────────────────────────────────────────────────
 // 1. DMP SUMMARY
