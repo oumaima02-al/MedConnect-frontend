@@ -17,10 +17,13 @@ const clearStoredSession = () => {
 
 let refreshPromise = null;
 
-// Attach token on every request
+// Attach token on every request — but NOT on the refresh endpoint itself
 api.interceptors.request.use((config) => {
-  const token = getAccessToken();
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const isRefresh = config.url?.includes('/auth/refresh');
+  if (!isRefresh) {
+    const token = getAccessToken();
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 

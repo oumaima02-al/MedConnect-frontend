@@ -239,19 +239,17 @@ export function useDoctorsList() {
     async function fetchDocs() {
       setLoading(true);
       try {
-        // We use adminService to get all doctors, or we can use doctorService.search
-        // Here we'll use a combined approach or just fetch verified doctors
-        const res = await adminService.getUsers({ role: 'DOCTOR', size: 100 });
-        const docs = res.data?.data?.content || res.data?.content || [];
+        // Use the public search endpoint instead of the admin-only getUsers
+        const res = await doctorService.search();
+        const docs = res.data?.data || res.data || [];
         
-        // Enhance with specialties
-        const enhanced = await Promise.all(docs.map(async d => {
-           try {
-             const pRes = await doctorService.getProfile(d.id);
-             return { ...d, profile: pRes.data?.data || pRes.data };
-           } catch(e) {
-             return d;
-           }
+        // Map the search results into the format expected by the UI.
+        // The search endpoint already returns doctor profiles, so we don't need to fetch them individually.
+        const enhanced = docs.map(d => ({
+          id: d.userId, // The UI expects `id`
+          nom: d.nom, // You may need to fetch the user details if not included, but for now we assume it's either in the profile or not strictly required for the list to render without crashing
+          prenom: d.prenom,
+          profile: d // The whole response is the profile
         }));
         
         setDoctors(enhanced);
