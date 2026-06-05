@@ -51,20 +51,25 @@ function UserModal({ user, onClose, onCreate, onUpdate }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Basic validation
+    if (!form.prenom.trim()) { setError('Le prénom est requis.'); return; }
+    if (!form.nom.trim()) { setError('Le nom est requis.'); return; }
+    if (!form.email.trim()) { setError('L\'email est requis.'); return; }
+    if (!isEdit && form.password.length < 8) { setError('Le mot de passe doit faire au moins 8 caractères.'); return; }
     setLoading(true); setError('');
     try {
-      console.log('Submitting form:', form);
       if (isEdit) {
         await onUpdate({ id: user.id, ...form });
       } else {
         await onCreate(form);
       }
-      // Modal will be closed by the parent's showToast/closeModal logic usually,
-      // but we call onClose here just in case to avoid the "waiting" state.
-      onClose();
+      // onClose is called by the parent after toast; do NOT call it here
+      // so the loading state is visible until parent resolves.
     } catch (err) {
       console.error('Submit error:', err);
-      setError(err.response?.data?.error || err.response?.data?.message || 'Erreur lors de l\'enregistrement');
+      const msg = err.response?.data?.error || err.response?.data?.message
+        || err.response?.data?.detail || 'Erreur lors de l\'enregistrement.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -682,16 +687,10 @@ export default function AdminUsersPage() {
           user={modal.user}
           onClose={closeModal}
           onCreate={null}
-          onUpdate={async (data) => { 
-            try {
-              await updateUser.mutateAsync(data); 
-              showToast('success', 'Utilisateur mis à jour avec succès !');
-              closeModal();
-            } catch (err) {
-              // Error is handled by UserModal internal state, but we log here
-              console.error('Update failed:', err);
-              throw err; 
-            }
+          onUpdate={async (data) => {
+            await updateUser.mutateAsync(data);
+            showToast('success', 'Utilisateur mis à jour avec succès !');
+            closeModal();
           }}
         />
       )}
@@ -700,13 +699,18 @@ export default function AdminUsersPage() {
           user={modal.user}
           loading={deleteUser.isPending}
           onClose={closeModal}
-          onConfirm={async () => { 
+          onConfirm={async () => {
+            if (!modal.user?.id) {
+              showToast('error', 'ID utilisateur introuvable.');
+              return;
+            }
             try {
-              await deleteUser.mutateAsync(modal.user.id); 
+              await deleteUser.mutateAsync(modal.user.id);
               showToast('success', `L'utilisateur ${modal.user.prenom} a été supprimé avec succès !`);
-              closeModal(); 
+              closeModal();
             } catch (err) {
-              showToast('error', `Erreur lors de la suppression: ${err.response?.data?.error || 'Erreur serveur'}`);
+              const errMsg = err.response?.data?.error || err.response?.data?.message || 'Erreur serveur';
+              showToast('error', `Erreur lors de la suppression: ${errMsg}`);
             }
           }}
         />

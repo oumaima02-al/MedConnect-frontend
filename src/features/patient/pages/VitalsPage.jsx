@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dmpService } from '../../../services/medicalService';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function VitalsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const patientId = user?.id || user?.userId || user?.sub;
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [vitals, setVitals] = useState({
@@ -41,7 +44,15 @@ export default function VitalsPage() {
 
     setSubmitting(true);
     try {
-      await dmpService.addVitals(vitals);
+      if (!patientId) throw new Error('ID patient introuvable');
+      const payload = {
+        weight: parseFloat(vitals.weight),
+        temperature: parseFloat(vitals.temperature),
+        bloodPressure: `${vitals.systolic}/${vitals.diastolic}`,
+        heartRate: parseInt(vitals.heartRate),
+        entryDate: new Date().toISOString(),
+      };
+      await dmpService.addVitals(patientId, payload);
       setMessage({ type: 'success', text: 'Paramètres vitaux enregistrés avec succès !' });
       setTimeout(() => navigate('/patient/dmp'), 1500);
     } catch (err) {

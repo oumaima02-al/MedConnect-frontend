@@ -29,8 +29,12 @@ export const adminService = {
 
   // ─── UPDATE user ──────────────────────────────────────────
   // PUT /users/{id}
-  updateUser: (id, { nom, prenom, telephone, email }) =>
-    api.put(`/users/${id}`, { nom, prenom, telephone, email }),
+  updateUser: (id, { nom, prenom, telephone, email, password, role }) => {
+    const body = { nom, prenom, telephone, email };
+    if (role) body.roles = [`ROLE_${role.toUpperCase()}`];
+    if (password) body.motDePasse = password;
+    return api.put(`/users/${id}`, body);
+  },
 
   // ─── DELETE user ──────────────────────────────────────────
   deleteUser: (id) => api.delete(`/users/${id}`),
