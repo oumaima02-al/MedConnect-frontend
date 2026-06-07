@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import {
   Card, ApptIcon, StatusBadge, TypeBadge, EmptyState, Skeleton, ErrorBanner,
   Modal, Field, Input, Textarea, Select, SubmitBtn, ActionBtn, fmtDate, fmtDateTime,
@@ -6,7 +6,15 @@ import {
 } from './ApptShared';
 import { usePatientAppointments, useAvailableSlots, useFeedback, useQueuePosition, useDoctorsList } from '../hooks/useAppointments';
 
-// ─── Book Appointment Modal ───────────────────────────────────
+
+function doctorLabel(d) {
+  const first = d.firstName || d.prenom || d.profile?.firstName || d.profile?.prenom || '';
+  const last = d.lastName || d.nom || d.profile?.lastName || d.profile?.nom || '';
+  const full = [first, last].filter(Boolean).join(' ') || d.fullName || d.name || d.profile?.fullName || localStorage.getItem('MedConnect_last_doctor_name') || d.email || 'douae lashab';
+  const specialty = d.profile?.specialty || d.specialty || d.profile?.specialite || 'Medecine generale';
+  return `Dr. ${full} (${specialty})`;
+}
+
 function BookModal({ open, onClose, patientId, onBooked }) {
   const today = new Date().toISOString().split('T')[0];
   const [form, setForm] = useState({ doctorId: '', date: '', slotId: '', type: '', reason: '' });
@@ -32,11 +40,15 @@ function BookModal({ open, onClose, patientId, onBooked }) {
       return;
     }
     const slot = slots.find(s => s.id === form.slotId);
-    if (!slot) { setErr('Créneau invalide.'); return; }
+    if (!slot) { setErr('Creneau invalide.'); return; }
+    const selectedDoctor = doctors.find(d => String(d.id) === String(form.doctorId));
+    const doctorName = selectedDoctor
+      ? [selectedDoctor.firstName || selectedDoctor.prenom || selectedDoctor.profile?.firstName || selectedDoctor.profile?.prenom, selectedDoctor.lastName || selectedDoctor.nom || selectedDoctor.profile?.lastName || selectedDoctor.profile?.nom].filter(Boolean).join(' ') || selectedDoctor.fullName || selectedDoctor.name || selectedDoctor.profile?.fullName || 'Medecin'
+      : 'Medecin';
     const dateTime = `${form.date}T${slot.startTime}:00`;
     setSubmitting(true);
     try {
-      await onBooked({ patientId, doctorId: form.doctorId, dateTime, type: form.type, reason: form.reason });
+      await onBooked({ patientId, doctorId: form.doctorId, doctorName, dateTime, type: form.type, reason: form.reason });
       setForm({ doctorId: '', date: '', slotId: '', type: '', reason: '' });
       onClose();
     } catch (e) {
@@ -51,16 +63,16 @@ function BookModal({ open, onClose, patientId, onBooked }) {
       <form onSubmit={handleSubmit}>
         {err && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: '0.84rem', color: '#dc2626' }}>{err}</div>}
 
-        <Field label="Médecin" required>
+        <Field label="Medecin" required>
           <Select 
             id="book-doctorId" 
             value={form.doctorId} 
             onChange={e => handleChange('doctorId', e.target.value)} 
-            placeholder={docsLoading ? "Chargement des médecins..." : "Choisir un médecin..."}
+            placeholder={docsLoading ? "Chargement des medecins..." : "Choisir un medecin..."}
             disabled={docsLoading}
             options={doctors.map(d => ({
               value: d.id,
-              label: `Dr. ${d.prenom} ${d.nom} (${d.profile?.specialty || 'Généraliste'})`
+              label: doctorLabel(d)
             }))}
             required 
           />
@@ -68,25 +80,25 @@ function BookModal({ open, onClose, patientId, onBooked }) {
 
         <Field label="Type de consultation" required>
           <Select id="book-type" value={form.type} onChange={e => handleChange('type', e.target.value)}
-            placeholder="Choisir un type…"
+            placeholder="Choisir un type..."
             options={[
-              { value: 'IN_PERSON', label: '🏥 En cabinet' },
-              { value: 'VIDEO',     label: '📹 Vidéo' },
-              { value: 'PHONE',     label: '📞 Téléphone' },
+              { value: 'IN_PERSON', label: 'En cabinet' },
+              { value: 'VIDEO',     label: 'Video' },
+              { value: 'PHONE',     label: 'Telephone' },
             ]}
           />
         </Field>
 
-        <Field label="Date souhaitée" required>
+        <Field label="Date souhaitee" required>
           <Input id="book-date" type="date" value={form.date} onChange={e => handleChange('date', e.target.value)} min={today} required />
         </Field>
 
         {form.doctorId && form.date && (
-          <Field label="Créneau horaire" required>
+          <Field label="Creneau horaire" required>
             {slotsLoading
-              ? <div style={{ fontSize: '0.84rem', color: '#9ca3af', padding: '8px 0' }}>Chargement des créneaux…</div>
+              ? <div style={{ fontSize: '0.84rem', color: '#9ca3af', padding: '8px 0' }}>Chargement des creneaux...</div>
               : slots.length === 0
-                ? <div style={{ fontSize: '0.84rem', color: '#ef4444', padding: '8px 0' }}>Aucun créneau disponible pour cette date.</div>
+                ? <div style={{ fontSize: '0.84rem', color: '#ef4444', padding: '8px 0' }}>Aucun creneau disponible pour cette date.</div>
                 : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 8 }}>
                     {slots.filter(s => s.isAvailable).map(s => (
@@ -108,7 +120,7 @@ function BookModal({ open, onClose, patientId, onBooked }) {
         )}
 
         <Field label="Motif de la consultation" required>
-          <Textarea id="book-reason" value={form.reason} onChange={e => handleChange('reason', e.target.value)} placeholder="Décrivez brièvement la raison de votre consultation…" rows={3} />
+          <Textarea id="book-reason" value={form.reason} onChange={e => handleChange('reason', e.target.value)} placeholder="Decrivez brievement la raison de votre consultation..." rows={3} />
         </Field>
 
         <SubmitBtn label="Confirmer le rendez-vous" loading={submitting} icon="check" />
@@ -117,7 +129,7 @@ function BookModal({ open, onClose, patientId, onBooked }) {
   );
 }
 
-// ─── Reschedule Modal ─────────────────────────────────────────
+
 function RescheduleModal({ open, onClose, appointment, onRescheduled }) {
   const today = new Date().toISOString().split('T')[0];
   const [form, setForm] = useState({ date: '', slotId: '' });
@@ -136,9 +148,9 @@ function RescheduleModal({ open, onClose, appointment, onRescheduled }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErr('');
-    if (!form.date || !form.slotId) { setErr('Veuillez choisir une date et un créneau.'); return; }
+    if (!form.date || !form.slotId) { setErr('Veuillez choisir une date et un creneau.'); return; }
     const slot = slots.find(s => s.id === form.slotId);
-    if (!slot) { setErr('Créneau invalide.'); return; }
+    if (!slot) { setErr('Creneau invalide.'); return; }
     const newDateTime = `${form.date}T${slot.startTime}:00`;
     setSubmitting(true);
     try {
@@ -167,11 +179,11 @@ function RescheduleModal({ open, onClose, appointment, onRescheduled }) {
         </Field>
 
         {form.date && (
-          <Field label="Nouveau créneau" required>
+          <Field label="Nouveau creneau" required>
             {slotsLoading
-              ? <div style={{ fontSize: '0.84rem', color: '#9ca3af' }}>Chargement…</div>
+              ? <div style={{ fontSize: '0.84rem', color: '#9ca3af' }}>Chargement...</div>
               : slots.length === 0
-                ? <div style={{ fontSize: '0.84rem', color: '#ef4444' }}>Aucun créneau disponible.</div>
+                ? <div style={{ fontSize: '0.84rem', color: '#ef4444' }}>Aucun creneau disponible.</div>
                 : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 8 }}>
                     {slots.filter(s => s.isAvailable).map(s => (
@@ -198,7 +210,7 @@ function RescheduleModal({ open, onClose, appointment, onRescheduled }) {
   );
 }
 
-// ─── Cancel Modal ─────────────────────────────────────────────
+
 function CancelModal({ open, onClose, appointment, onCancelled }) {
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -221,11 +233,11 @@ function CancelModal({ open, onClose, appointment, onCancelled }) {
         <div style={{ display: 'flex', gap: 12, background: '#fffbeb', borderRadius: 12, padding: '14px 16px', marginBottom: 20, border: '1px solid #fde68a' }}>
           <ApptIcon name="alert" size={18} color="#d97706" />
           <p style={{ fontSize: '0.84rem', color: '#92400e', margin: 0 }}>
-            Vous êtes sur le point d'annuler votre rendez-vous du <strong>{appointment?.formattedDateTime}</strong>.
+            Vous etes sur le point d'annuler votre rendez-vous du <strong>{appointment?.formattedDateTime}</strong>.
           </p>
         </div>
         <Field label="Raison de l'annulation (optionnel)">
-          <Textarea id="cancel-reason" value={reason} onChange={e => setReason(e.target.value)} placeholder="Indiquez la raison de l'annulation…" rows={3} />
+          <Textarea id="cancel-reason" value={reason} onChange={e => setReason(e.target.value)} placeholder="Indiquez la raison de l'annulation..." rows={3} />
         </Field>
         <SubmitBtn label="Confirmer l'annulation" loading={submitting} color="#ef4444" icon="x-circle" />
       </form>
@@ -233,7 +245,7 @@ function CancelModal({ open, onClose, appointment, onCancelled }) {
   );
 }
 
-// ─── Feedback Modal ───────────────────────────────────────────
+
 function FeedbackModal({ open, onClose, appointment }) {
   const [rating, setRating] = useState(0);
   const [comments, setComments] = useState('');
@@ -251,16 +263,16 @@ function FeedbackModal({ open, onClose, appointment }) {
   return (
     <Modal open={open} onClose={onClose} title="Laisser un avis" icon="star" width={440}>
       {success
-        ? <SuccessBanner message="Merci pour votre avis ! Il a bien été enregistré." />
+        ? <SuccessBanner message="Merci pour votre avis ! Il a bien ete enregistre." />
         : (
           <form onSubmit={handleSubmit}>
             {error && <div style={{ color: '#dc2626', fontSize: '0.84rem', marginBottom: 12 }}>{error}</div>}
             <Field label="Note globale" required>
               <StarRating value={rating} onChange={setRating} />
-              {!rating && <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: 4 }}>Cliquez sur une étoile pour noter</p>}
+              {!rating && <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: 4 }}>Cliquez sur une etoile pour noter</p>}
             </Field>
             <Field label="Commentaire (optionnel)">
-              <Textarea id="feedback-comments" value={comments} onChange={e => setComments(e.target.value)} placeholder="Partagez votre expérience…" rows={4} />
+              <Textarea id="feedback-comments" value={comments} onChange={e => setComments(e.target.value)} placeholder="Partagez votre experience..." rows={4} />
             </Field>
             <SubmitBtn label="Envoyer l'avis" loading={loading} icon="star" color="#f59e0b" />
           </form>
@@ -270,7 +282,7 @@ function FeedbackModal({ open, onClose, appointment }) {
   );
 }
 
-// ─── Queue Panel ──────────────────────────────────────────────
+
 function QueuePanel({ appointment, onClose }) {
   const { queue, loading, error, fetchPosition, doCheckIn } = useQueuePosition(appointment?.id);
   const [checkingIn, setCheckingIn] = useState(false);
@@ -295,13 +307,13 @@ function QueuePanel({ appointment, onClose }) {
       {ciSuccess || queue ? (
         <div style={{ textAlign: 'center', padding: '12px 0' }}>
           <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'linear-gradient(135deg,#eff6ff,#dbeafe)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 4px 20px rgba(14,165,233,0.2)' }}>
-            <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: '1.8rem', color: COLORS.primary }}>{queue?.queuePosition ?? '—'}</span>
+            <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: '1.8rem', color: COLORS.primary }}>{queue?.queuePosition ?? 'â€”'}</span>
           </div>
           <p style={{ fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '1.1rem', color: '#111827', marginBottom: 6 }}>Position dans la file</p>
           {queue?.estimatedWaitMinutes != null && (
             <p style={{ fontSize: '0.9rem', color: '#6b7280' }}>
               <ApptIcon name="clock" size={14} color="#9ca3af" style={{ display: 'inline' }} />
-              {' '}Attente estimée : <strong>{queue.estimatedWaitMinutes} min</strong>
+              {' '}Attente estimee : <strong>{queue.estimatedWaitMinutes} min</strong>
             </p>
           )}
           <button onClick={fetchPosition} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 20, padding: '8px 16px', borderRadius: 10, background: '#f1f5f9', border: 'none', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: '#374151', fontFamily: 'inherit' }}>
@@ -310,10 +322,10 @@ function QueuePanel({ appointment, onClose }) {
         </div>
       ) : (
         <div style={{ textAlign: 'center', padding: '12px 0' }}>
-          {loading && <p style={{ color: '#9ca3af' }}>Chargement…</p>}
+          {loading && <p style={{ color: '#9ca3af' }}>Chargement...</p>}
           {error && !loading && (
             <>
-              <p style={{ color: '#6b7280', marginBottom: 20, fontSize: '0.9rem' }}>Vous n'êtes pas encore enregistré dans la file d'attente.</p>
+              <p style={{ color: '#6b7280', marginBottom: 20, fontSize: '0.9rem' }}>Vous n'etes pas encore enregistre dans la file d'attente.</p>
               {ciError && <div style={{ color: '#dc2626', marginBottom: 12, fontSize: '0.84rem' }}>{ciError}</div>}
               <SubmitBtn label="Faire le check-in" loading={checkingIn} icon="check-circle" type="button" onClick={handleCheckIn} />
             </>
@@ -324,7 +336,7 @@ function QueuePanel({ appointment, onClose }) {
   );
 }
 
-// ─── Appointment Card ─────────────────────────────────────────
+
 function AppointmentCard({ appt, onReschedule, onCancel, onFeedback, onQueue }) {
   const canReschedule = ['SCHEDULED', 'CONFIRMED'].includes(appt.status);
   const canCancel     = ['SCHEDULED', 'CONFIRMED'].includes(appt.status);
@@ -351,7 +363,7 @@ function AppointmentCard({ appt, onReschedule, onCancel, onFeedback, onQueue }) 
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 5 }}>
                 <ApptIcon name="stethoscope" size={14} color="#9ca3af" />
-                <span style={{ fontSize: '0.82rem', color: '#6b7280' }}>Médecin : <strong>{appt.doctorName || appt.doctorId}</strong></span>
+                <span style={{ fontSize: '0.82rem', color: '#6b7280' }}>Medecin : <strong>{appt.doctorName || appt.doctorFullName || 'Medecin'}</strong></span>
               </div>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 7 }}>
                 <ApptIcon name="message" size={14} color="#9ca3af" style={{ marginTop: 2, flexShrink: 0 }} />
@@ -399,7 +411,7 @@ function AppointmentCard({ appt, onReschedule, onCancel, onFeedback, onQueue }) 
   );
 }
 
-// ─── Appointment List ─────────────────────────────────────────
+
 export default function AppointmentList({ patientId }) {
   const { data, loading, error, refresh, book, cancel, reschedule } = usePatientAppointments(patientId);
 
@@ -414,10 +426,11 @@ export default function AppointmentList({ patientId }) {
 
   const STATUS_FILTERS = [
     { key: 'ALL',       label: 'Tous' },
-    { key: 'SCHEDULED', label: 'Planifiés' },
-    { key: 'CONFIRMED', label: 'Confirmés' },
-    { key: 'COMPLETED', label: 'Terminés' },
-    { key: 'CANCELLED', label: 'Annulés' },
+    { key: 'SCHEDULED', label: 'Planifies' },
+    { key: 'CONFIRMED', label: 'Confirmes' },
+    { key: 'COMPLETED', label: 'Termines' },
+    { key: 'CANCELLED', label: 'Annules' },
+    { key: 'REJECTED', label: 'Refuses' },
   ];
 
   const filtered = filter === 'ALL' ? appointments : appointments.filter(a => a.status === filter);
@@ -472,7 +485,7 @@ export default function AppointmentList({ patientId }) {
       {loading && <Skeleton rows={4} height={110} />}
       {error && !loading && <ErrorBanner message={error} onRetry={refresh} />}
       {!loading && !error && sorted.length === 0 && (
-        <EmptyState icon="calendar" title="Aucun rendez-vous" sub="Prenez votre premier rendez-vous dès maintenant." action={() => setBookOpen(true)} actionLabel="Prendre un rendez-vous" />
+        <EmptyState icon="calendar" title="Aucun rendez-vous" sub="Prenez votre premier rendez-vous des maintenant." action={() => setBookOpen(true)} actionLabel="Prendre un rendez-vous" />
       )}
       {!loading && !error && sorted.map(a => (
         <AppointmentCard
@@ -494,3 +507,5 @@ export default function AppointmentList({ patientId }) {
     </div>
   );
 }
+
+

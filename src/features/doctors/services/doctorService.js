@@ -31,6 +31,19 @@ export const doctorService = {
     });
   },
 
+  updateProfile: (userId, profileData) =>
+    api.put(`/users/doctors/${userId}`, {
+      userId,
+      specialty: profileData.specialty,
+      languages: profileData.languages,
+      city: profileData.city,
+      clinicName: profileData.clinicName,
+      professionalRegistrationNumber: profileData.professionalRegistrationNumber,
+      nationalIdNumber: profileData.nationalIdNumber,
+      registrationAuthority: profileData.registrationAuthority,
+      rppsLicense: profileData.professionalRegistrationNumber,
+    }),
+
   // ─── GET doctor profile ───────────────────────────────────
   // GET /users/doctors/{userId}
   getProfile: (userId) =>

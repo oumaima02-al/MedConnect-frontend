@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dmpService } from '../../../services/medicalService';
 import { useAuth } from '../../../context/AuthContext';
@@ -23,11 +23,11 @@ export default function VitalsPage() {
     }
     const weightVal = parseFloat(vitals.weight);
     if (isNaN(weightVal) || weightVal <= 0) {
-      return 'Le poids doit être un nombre supérieur à 0 kg.';
+      return 'Le poids doit Ãªtre un nombre supÃ©rieur Ã  0 kg.';
     }
     const tempVal = parseFloat(vitals.temperature);
     if (isNaN(tempVal) || tempVal < 30 || tempVal > 45) {
-      return 'Veuillez entrer une température valide (entre 30°C et 45°C).';
+      return 'Veuillez entrer une tempÃ©rature valide (entre 30Â°C et 45Â°C).';
     }
     return null;
   };
@@ -53,7 +53,7 @@ export default function VitalsPage() {
         entryDate: new Date().toISOString(),
       };
       await dmpService.addVitals(patientId, payload);
-      setMessage({ type: 'success', text: 'Paramètres vitaux enregistrés avec succès !' });
+      setMessage({ type: 'success', text: 'ParamÃ¨tres vitaux enregistrÃ©s avec succÃ¨s !' });
       setTimeout(() => navigate('/patient/dmp'), 1500);
     } catch (err) {
       setMessage({ type: 'error', text: err?.response?.data?.message || 'Erreur lors de l\'enregistrement' });
@@ -73,7 +73,7 @@ export default function VitalsPage() {
           Suivi de mes constantes
         </h1>
         <p style={{ color: '#6b7280', fontSize: '0.92rem', marginTop: 6 }}>
-          Enregistrez vos paramètres vitaux pour un meilleur suivi médical par vos docteurs.
+          Enregistrez vos paramÃ¨tres vitaux pour un meilleur suivi mÃ©dical par vos docteurs.
         </p>
       </div>
 
@@ -86,7 +86,7 @@ export default function VitalsPage() {
           display: 'flex', alignItems: 'center', gap: 10,
           animation: 'fadeIn 0.3s ease-in-out'
         }}>
-          {message.type === 'error' ? '⚠️' : '✅'} {message.text}
+          {message.type === 'error' ? 'âš ï¸' : 'âœ…'} {message.text}
         </div>
       )}
 
@@ -104,7 +104,7 @@ export default function VitalsPage() {
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: 10, fontWeight: 600, fontSize: '0.85rem', color: '#374151' }}>Température (°C)</label>
+            <label style={{ display: 'block', marginBottom: 10, fontWeight: 600, fontSize: '0.85rem', color: '#374151' }}>TempÃ©rature (Â°C)</label>
             <input 
               type="number" step="0.1" placeholder="Ex: 37.0"
               style={{ width: '100%', padding: '14px', borderRadius: 14, border: '1.5px solid #f1f5f9', background: '#f8fafc', fontSize: '1rem', outline: 'none' }}
@@ -114,7 +114,7 @@ export default function VitalsPage() {
           </div>
 
           <div style={{ gridColumn: '1 / span 2' }}>
-            <label style={{ display: 'block', marginBottom: 12, fontWeight: 700, fontSize: '0.9rem', color: '#111827' }}>Tension Artérielle (mmHg)</label>
+            <label style={{ display: 'block', marginBottom: 12, fontWeight: 700, fontSize: '0.9rem', color: '#111827' }}>Tension ArtÃ©rielle (mmHg)</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <input 
                 type="number" placeholder="Systolique"
@@ -133,7 +133,7 @@ export default function VitalsPage() {
           </div>
 
           <div style={{ gridColumn: '1 / span 2' }}>
-            <label style={{ display: 'block', marginBottom: 10, fontWeight: 600, fontSize: '0.85rem', color: '#374151' }}>Fréquence Cardiaque (bpm)</label>
+            <label style={{ display: 'block', marginBottom: 10, fontWeight: 600, fontSize: '0.85rem', color: '#374151' }}>FrÃ©quence Cardiaque (bpm)</label>
             <input 
               type="number" placeholder="Ex: 72"
               style={{ width: '100%', padding: '14px', borderRadius: 14, border: '1.5px solid #f1f5f9', background: '#f8fafc', fontSize: '1rem', outline: 'none' }}
@@ -164,3 +164,4 @@ export default function VitalsPage() {
     </div>
   );
 }
+

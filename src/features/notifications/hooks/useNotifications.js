@@ -164,9 +164,9 @@ export function useNotifications(userId) {
   // ── Bootstrap & polling ───────────────────────────────────────────────
   useEffect(() => {
     if (!userId) return;
-    refreshUnreadCount();
-    pollRef.current = setInterval(refreshUnreadCount, POLL_INTERVAL_MS);
-    return () => clearInterval(pollRef.current);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
   }, [userId, refreshUnreadCount]);
 
   return {

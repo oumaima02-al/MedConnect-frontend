@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { ApptIcon, COLORS, TabBar } from '../components/ApptShared';
 import AppointmentList  from '../components/AppointmentList';
@@ -15,6 +15,12 @@ export default function AppointmentsPage() {
 
   const isDoctor  = role === 'DOCTOR';
   const isPatient = role === 'PATIENT' || role === 'USER';
+
+  useEffect(() => {
+    if (!isDoctor) return;
+    const name = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.fullName || user?.name || 'douae lashab';
+    localStorage.setItem('MedConnect_last_doctor_name', name);
+  }, [isDoctor, user]);
 
   // Build tabs based on role
   const PATIENT_TABS = [
@@ -40,7 +46,7 @@ export default function AppointmentsPage() {
       </style>
       <div className="appt-page">
 
-        {/* Tab bar — only show when user has multiple tabs */}
+        {/* Tab bar â€” only show when user has multiple tabs */}
         {tabs.length > 1 && (
           <div style={{ marginBottom: 24 }}>
             <TabBar tabs={tabs} active={activeTab} onChange={setActiveTab} />
@@ -71,7 +77,7 @@ export default function AppointmentsPage() {
           </>
         )}
 
-        {/* Fallback — render both if role unknown */}
+        {/* Fallback â€” render both if role unknown */}
         {!isPatient && !isDoctor && (
           <AppointmentList patientId={patientId} />
         )}
@@ -79,3 +85,4 @@ export default function AppointmentsPage() {
     </div>
   );
 }
+

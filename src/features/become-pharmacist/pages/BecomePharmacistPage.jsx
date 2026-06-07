@@ -123,10 +123,11 @@ const INITIAL_PREVIEWS = { cardFrontImage: null, cardBackImage: null };
 
 /* ── MAIN PAGE ───────────────────────────────────────────────────── */
 export default function BecomePharmacistPage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
+  const userId = user?.id || user?.userId;
 
-  const { status, isLoading: statusLoading, refetch } = usePharmacistStatus(user?.id);
+  const { status, isLoading: statusLoading, refetch } = usePharmacistStatus(userId);
 
   const [step, setStep] = useState(0);      // 0=Info, 1=Docs, 2=Confirmation
   const [done, setDone] = useState(false);  // final success screen
@@ -145,6 +146,13 @@ export default function BecomePharmacistPage() {
   useEffect(() => {
     if (toast) { const t = setTimeout(() => setToast(null), 4500); return () => clearTimeout(t); }
   }, [toast]);
+
+  useEffect(() => {
+    if (status === 'VERIFIED') {
+      updateUser({ role: 'PHARMACIST' });
+      localStorage.setItem('MedConnect_role', 'PHARMACIST');
+    }
+  }, [status, updateUser]);
 
   const showToast = (message, type = 'success') => setToast({ message, type });
 
@@ -194,16 +202,16 @@ export default function BecomePharmacistPage() {
     setSubmitting(true);
     try {
       // Step 1: Upload FRONT document
-      const frontRes = await documentService.upload(user?.id, 'PHARMACIST', 'FRONT', files.cardFrontImage);
+      const frontRes = await documentService.upload(userId, 'PHARMACIST', 'FRONT', files.cardFrontImage);
       const cardFrontImageUrl = frontRes?.data?.url || frontRes?.data?.path || 'uploaded';
 
       // Step 2: Upload BACK document
-      const backRes = await documentService.upload(user?.id, 'PHARMACIST', 'BACK', files.cardBackImage);
+      const backRes = await documentService.upload(userId, 'PHARMACIST', 'BACK', files.cardBackImage);
       const cardBackImageUrl = backRes?.data?.url || backRes?.data?.path || 'uploaded';
 
       // Step 3: Send pharmacist profile with document URLs
       await pharmacistService.createProfile({
-        userId: user?.id,
+        userId,
         ...form,
         cardFrontImageUrl,
         cardBackImageUrl,
@@ -211,7 +219,7 @@ export default function BecomePharmacistPage() {
 
       // Step 4: Verify documents are persisted in backend
       try {
-        const verifyRes = await documentService.getDocumentsByUser(user?.id);
+        const verifyRes = await documentService.getDocumentsByUser(userId);
         const docs = verifyRes.data?.data || verifyRes.data || [];
         if (docs.length < 2) {
           console.warn('[BecomePharmacist] Not all documents confirmed in DB yet:', docs);

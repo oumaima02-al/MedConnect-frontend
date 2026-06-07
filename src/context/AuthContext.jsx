@@ -1,10 +1,25 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import api from '../services/api';
 
 const AuthContext = createContext(null);
 
+const normalizeRole = (userData = {}) => {
+  const roles = [userData.role, ...(userData.roles || [])]
+    .filter(Boolean)
+    .map((role) => String(role).replace(/^ROLE_/, '').toUpperCase());
+  const priority = ['ADMIN', 'DOCTOR', 'PHARMACIST', 'PATIENT', 'USER'];
+  return priority.find((role) => roles.includes(role)) || roles[0] || userData.role;
+};
+
+const normalizeUser = (userData) => {
+  if (!userData) return userData;
+  const role = normalizeRole(userData);
+  return { ...userData, role };
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('MedConnect_user')); }
+    try { return normalizeUser(JSON.parse(localStorage.getItem('MedConnect_user'))); }
     catch { return null; }
   });
   const [token, setToken] = useState(
@@ -12,17 +27,49 @@ export const AuthProvider = ({ children }) => {
   );
 
   const login = (userData, authToken) => {
-    setUser(userData);
+    const normalizedUser = normalizeUser(userData);
+    setUser(normalizedUser);
     setToken(authToken);
     if (authToken) {
       localStorage.setItem('MedConnect_access_token', authToken);
     }
-    if (userData) {
-      localStorage.setItem('MedConnect_user', JSON.stringify(userData));
-      if (userData.role) localStorage.setItem('MedConnect_role', userData.role);
+    if (normalizedUser) {
+      localStorage.setItem('MedConnect_user', JSON.stringify(normalizedUser));
+      if (normalizedUser.role) localStorage.setItem('MedConnect_role', normalizedUser.role);
     }
   };
 
+
+  const updateUser = useCallback((patch) => {
+    setUser((current) => {
+      const next = normalizeUser({ ...(current || {}), ...(patch || {}) });
+      if (next) {
+        localStorage.setItem('MedConnect_user', JSON.stringify(next));
+        if (next.role) localStorage.setItem('MedConnect_role', next.role);
+      }
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    api.get('/users/me')
+      .then(({ data }) => {
+        if (cancelled) return;
+        const freshUser = normalizeUser(data?.data || data);
+        if (freshUser) {
+          setUser((current) => {
+            const next = normalizeUser({ ...(current || {}), ...freshUser });
+            localStorage.setItem('MedConnect_user', JSON.stringify(next));
+            if (next.role) localStorage.setItem('MedConnect_role', next.role);
+            return next;
+          });
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [token]);
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -31,7 +78,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, token, login, updateUser, logout, isAuthenticated: !!token }}>
       {children}
     </AuthContext.Provider>
   );

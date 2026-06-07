@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { TabBar } from '../components/DMPShared';
 import DMPSummaryCard    from '../components/DMPSummaryCard';
@@ -31,10 +32,13 @@ const TABS = [
 
 export default function MedicalRecordsPage() {
   const { user } = useAuth();
+  const { id: routePatientId } = useParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
 
   // Use patientId from user context; fallback for dev
-  const patientId = user?.id || user?.userId || 'patient-1';
+  const patientId = routePatientId || user?.id || user?.userId || 'patient-1';
+  const isDoctorPatientRecord = Boolean(routePatientId);
 
   return (
     <div>
@@ -44,6 +48,17 @@ export default function MedicalRecordsPage() {
       `}</style>
 
       <div className="dmp-page">
+        {isDoctorPatientRecord && (
+          <div style={{ marginBottom: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div>
+              <h1 style={{ margin: 0, fontFamily: "'Sora',sans-serif", fontSize: '1.5rem', color: '#111827' }}>Dossier medical du patient</h1>
+              <p style={{ margin: '4px 0 0', color: '#94a3b8', fontSize: '0.9rem' }}>Completez les informations cliniques apres la consultation.</p>
+            </div>
+            <button onClick={() => navigate(`/doctor/patients/${patientId}`)} style={{ padding: '10px 16px', borderRadius: 12, border: '1px solid #e2e8f0', background: 'white', color: '#334155', fontWeight: 700, cursor: 'pointer' }}>
+              Retour au patient
+            </button>
+          </div>
+        )}
         {/* Summary Header */}
         <DMPSummaryCard patientId={patientId} />
 

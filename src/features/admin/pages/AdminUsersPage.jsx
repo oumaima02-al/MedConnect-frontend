@@ -360,13 +360,16 @@ function AuditsPanel() {
   };
 
   const getProfileStatus = (p) => {
-    const st = p.profile?.verificationStatus || p.profile?.status;
-    if (st) return String(st).toUpperCase();
+    const rawStatus = p.profile?.verificationStatus || p.profile?.status;
+    const status = rawStatus ? String(rawStatus).toUpperCase() : '';
+    if (status === 'PENDING_VERIFICATION') return 'PENDING';
+    if (status) return status;
     return p.profile?.verified ? 'VERIFIED' : 'PENDING';
   };
 
   const filteredPros = pros.filter(p => {
     const status = getProfileStatus(p);
+    if (filter === 'PENDING') return status === 'PENDING' || status === 'PENDING_VERIFICATION';
     return status === filter;
   });
 
@@ -393,7 +396,7 @@ function AuditsPanel() {
           { key: 'REJECTED', label: 'Rejetés', color: '#ef4444' },
         ].map(t => {
           const active = filter === t.key;
-          const count = pros.filter(p => getProfileStatus(p) === t.key).length;
+          const count = pros.filter(p => { const s = getProfileStatus(p); return t.key === 'PENDING' ? (s === 'PENDING' || s === 'PENDING_VERIFICATION') : s === t.key; }).length;
           return (
             <button
               key={t.key}
@@ -572,7 +575,12 @@ function AuditsPanel() {
                   <h4 style={{ fontFamily: "'Sora', sans-serif", fontSize: '0.8rem', color: '#0f172a', fontWeight: 700, marginBottom: 10 }}>
                     Documents Professionnels
                   </h4>
-                  <AdminDocumentViewer userId={p.id} userName={`${p.prenom} ${p.nom}`} />
+                  <AdminDocumentViewer
+                    userId={p.id}
+                    userName={`${p.prenom} ${p.nom}`}
+                    legacyFrontUrl={profile?.cardFrontImageUrl}
+                    legacyBackUrl={profile?.cardBackImageUrl}
+                  />
                 </div>
 
                 {/* Footer Buttons */}

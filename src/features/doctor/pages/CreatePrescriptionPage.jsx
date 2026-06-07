@@ -240,7 +240,7 @@ export default function CreatePrescriptionPage() {
         <h1 style={{ fontFamily: "'Sora',sans-serif", fontSize: '1.6rem', fontWeight: 800, color: '#111827' }}>
           Nouvelle Ordonnance Numérique
         </h1>
-        <p style={{ color: '#9ca3af', fontSize: '0.88rem', marginTop: 4 }}>Patient ID: {patientId}</p>
+        <p style={{ color: '#9ca3af', fontSize: '0.88rem', marginTop: 4 }}>Patient selectionne</p>
       </div>
 
       {apiError && (

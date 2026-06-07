@@ -57,6 +57,7 @@ const STATUS_CONFIG = {
   SCHEDULED:  { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe', label: 'Planifié' },
   CONFIRMED:  { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0', label: 'Confirmé' },
   CANCELLED:  { bg: '#fff1f2', text: '#e11d48', border: '#fecdd3', label: 'Annulé' },
+  REJECTED:   { bg: '#fef2f2', text: '#dc2626', border: '#fecaca', label: 'Refusé' },
   COMPLETED:  { bg: '#f8fafc', text: '#475569', border: '#e2e8f0', label: 'Terminé' },
   NO_SHOW:    { bg: '#fffbeb', text: '#d97706', border: '#fde68a', label: 'Absent' },
 };

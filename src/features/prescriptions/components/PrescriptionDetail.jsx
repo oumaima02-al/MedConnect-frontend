@@ -49,6 +49,8 @@ export default function PrescriptionDetail({ rxId, onBack }) {
 
   const meds = Array.isArray(rx.medications) ? rx.medications : [];
   const refList = Array.isArray(refills) ? refills : [];
+  const patientName = rx.patientName || rx.patientFullName || 'Patient';
+  const doctorName = rx.doctorName || rx.doctorFullName || 'Medecin';
 
   const handleAddItem = async (f) => { setSaving(true); try { await addItemFn(f); setModal(null); } finally { setSaving(false); } };
   const handleDeleteItem = async (itemId) => { if (!confirm('Supprimer ce médicament ?')) return; await deleteItemFn(itemId); };
@@ -78,8 +80,8 @@ export default function PrescriptionDetail({ rxId, onBack }) {
           <Card>
             <div style={{ padding: '20px 24px' }}>
               <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#374151', marginBottom: 16 }}>Informations générales</h3>
-              <InfoRow label="Patient ID" value={rx.patientId} />
-              <InfoRow label="Médecin ID" value={rx.doctorId} />
+              <InfoRow label="Patient" value={patientName} />
+              <InfoRow label="Medecin" value={doctorName} />
               <InfoRow label="Date de fin" value={fmtDate(rx.expiryDate)} />
             </div>
           </Card>

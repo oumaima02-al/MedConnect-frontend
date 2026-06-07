@@ -76,12 +76,15 @@ export function useOtpVerification() {
   const [error,      setError]      = useState('');
   const [resendCool, setResendCool] = useState(0);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleVerify = async ({ email, code }) => {
     setLoading(true);
     setError('');
     try {
-      await authService.verifyEmail({ email, code });
+      const { data } = await authService.verifyEmail({ email, code });
+      const session = authService.saveSession(data);
+      login(session.user, session.accessToken);
       return { success: true };
     } catch (err) {
       const msg = err.response?.data?.error || 'Code invalide ou expiré';

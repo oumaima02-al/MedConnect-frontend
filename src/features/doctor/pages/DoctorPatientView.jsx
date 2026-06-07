@@ -93,7 +93,7 @@ export default function DoctorPatientView() {
     );
   }
 
-  const patientName = patient ? `${patient.prenom || ''} ${patient.nom || ''}`.trim() || `Patient #${patientId}` : `Patient #${patientId}`;
+  const patientName = patient ? `${patient.prenom || ''} ${patient.nom || ''}`.trim() || 'Patient' : 'Patient';
   const initials = patientName.split(' ').map(n => n[0] || '').join('').toUpperCase().slice(0, 2) || 'PT';
 
   // Build unified event timeline from DMP
@@ -137,7 +137,7 @@ export default function DoctorPatientView() {
               {patientName}
             </h1>
             <p style={{ color: '#6b7280', fontSize: '0.88rem', marginTop: 4 }}>
-              Patient ID: {patientId}
+              Dossier patient
               {dmp?.allergies?.length > 0 && (
                 <span style={{ marginLeft: 8, background: '#fef2f2', color: '#dc2626', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: 20 }}>
                   ⚠ {dmp.allergies.length} allergie(s)
@@ -156,6 +156,15 @@ export default function DoctorPatientView() {
             }}
           >
             <Icon name="grid" size={16} color="white" /> Nouvelle Consultation
+          </button>
+          <button
+            onClick={() => navigate(`/doctor/patients/${patientId}/dmp`)}
+            style={{
+              padding: '11px 18px', borderRadius: 12, border: '1.5px solid #3b82f6',
+              color: '#2563eb', background: 'white', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'inherit',
+            }}
+          >
+            <Icon name="file" size={16} color="#2563eb" /> Remplir le DMP
           </button>
           <button
             onClick={() => navigate(`/doctor/patients/${patientId}/prescription`)}
@@ -269,6 +278,13 @@ export default function DoctorPatientView() {
           <div style={{ background: '#f8fafc', borderRadius: 20, padding: '20px 22px', border: '1px solid #e2e8f0' }}>
             <h4 style={{ margin: '0 0 14px', fontSize: '0.82rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Actions cliniques</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                onClick={() => navigate(`/doctor/patients/${patientId}/dmp`)}
+                style={{ padding: '11px 14px', borderRadius: 12, background: 'white', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', width: '100%' }}
+              >
+                <Icon name="file" size={16} color="#2563eb" />
+                <span style={{ fontSize: '0.86rem', fontWeight: 600, color: '#374151' }}>Remplir le dossier medical</span>
+              </button>
               <button
                 onClick={() => navigate(`/doctor/patients/${patientId}/consultation`)}
                 style={{ padding: '11px 14px', borderRadius: 12, background: 'white', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', width: '100%' }}

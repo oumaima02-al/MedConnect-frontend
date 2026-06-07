@@ -69,6 +69,8 @@ apptApi.interceptors.response.use(
 export const bookAppointment      = (data)              => apptApi.post('/appointments', data);
 export const getAppointment       = (id)                => apptApi.get(`/appointments/${id}`);
 export const rescheduleAppointment = (id, newDateTime)  => apptApi.put(`/appointments/${id}`, { newDateTime });
+export const confirmAppointment   = (id)                => apptApi.post(`/appointments/${id}/confirm`);
+export const rejectAppointment    = (id, reason)        => apptApi.post(`/appointments/${id}/reject`, null, { params: reason ? { reason } : {} });
 export const cancelAppointment    = (id, reason)        => apptApi.delete(`/appointments/${id}`, { params: reason ? { reason } : {} });
 export const getPatientAppointments = (patientId)       => apptApi.get(`/appointments/patient/${patientId}`);
 export const getDoctorAppointments  = (doctorId)        => apptApi.get(`/appointments/doctor/${doctorId}`);

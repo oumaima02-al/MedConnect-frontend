@@ -1,11 +1,11 @@
-import { useDMPSummary } from '../hooks/useDMP';
+﻿import { useDMPSummary } from '../hooks/useDMP';
 import { Icon, fmtDate } from './DMPShared';
 import * as dmp from '../services/dmpService';
 import { useState } from 'react';
 
 const STAT_CARDS = [
   { key: 'allergies',          label: 'Allergies',       icon: 'alert-triangle', color: '#ef4444', bg: '#fef2f2' },
-  { key: 'currentMedications', label: 'Médicaments',     icon: 'pill',           color: '#7c3aed', bg: '#faf5ff' },
+  { key: 'currentMedications', label: 'Medicaments',     icon: 'pill',           color: '#7c3aed', bg: '#faf5ff' },
   { key: 'chronicConditions',  label: 'Maladies chron.', icon: 'activity',       color: '#0891b2', bg: '#f0f9ff' },
   { key: 'vaccinations',       label: 'Vaccinations',    icon: 'syringe',        color: '#d97706', bg: '#fffbeb' },
   { key: 'recentLabResults',   label: 'Analyses',        icon: 'git-commit',     color: '#059669', bg: '#f0fdf4' },
@@ -22,11 +22,20 @@ export default function DMPSummaryCard({ patientId }) {
     setExportMsg(null);
     try {
       const res = await dmp.exportFHIR(patientId);
-      setExportMsg({ ok: true, text: 'Export FHIR généré avec succès !' });
-      // In a real app: download the JSON
-      console.log('FHIR Bundle:', res.data?.data);
+      const fhirBundle = res.data?.data ?? res.data;
+      const json = JSON.stringify(fhirBundle, null, 2);
+      const blob = new Blob([json], { type: 'application/fhir+json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `fhir-export-${patientId}-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setExportMsg({ ok: true, text: 'Export FHIR telecharge avec succes.' });
     } catch {
-      setExportMsg({ ok: false, text: 'Erreur lors de l\'export FHIR.' });
+      setExportMsg({ ok: false, text: 'Erreur export FHIR.' });
     } finally {
       setExporting(false);
       setTimeout(() => setExportMsg(null), 4000);
@@ -39,11 +48,8 @@ export default function DMPSummaryCard({ patientId }) {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <h1 style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: '1.6rem', color: '#111827', margin: 0 }}>
-            Dossier Médical Patient
+            Dossier Medical Patient
           </h1>
-          <p style={{ color: '#9ca3af', fontSize: '0.88rem', marginTop: 4 }}>
-            ID patient : <code style={{ background: '#f3f4f6', padding: '2px 7px', borderRadius: 6, color: '#374151' }}>{patientId}</code>
-          </p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
           <button
@@ -61,7 +67,7 @@ export default function DMPSummaryCard({ patientId }) {
             }}
           >
             <Icon name="download" size={16} color="white" />
-            {exporting ? 'Export en cours…' : 'Exporter FHIR'}
+            {exporting ? 'Export en cours...' : 'Exporter FHIR'}
           </button>
           {exportMsg && (
             <span style={{
@@ -81,7 +87,7 @@ export default function DMPSummaryCard({ patientId }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
         {STAT_CARDS.map(({ key, label, icon, color, bg }) => {
           const items = summary?.[key];
-          const count = Array.isArray(items) ? items.length : '—';
+          const count = Array.isArray(items) ? items.length : '-';
           return (
             <div key={key} style={{
               background: 'white',
@@ -101,7 +107,7 @@ export default function DMPSummaryCard({ patientId }) {
               </div>
               <div>
                 <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: '1.4rem', color: '#111827', lineHeight: 1 }}>
-                  {loading ? '…' : count}
+                  {loading ? '...' : count}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: 2 }}>{label}</div>
               </div>
@@ -112,3 +118,6 @@ export default function DMPSummaryCard({ patientId }) {
     </div>
   );
 }
+
+
+

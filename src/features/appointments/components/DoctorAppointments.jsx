@@ -1,13 +1,15 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import {
   Card, ApptIcon, StatusBadge, TypeBadge, EmptyState, Skeleton, ErrorBanner,
   Modal, Field, Input, Select, SubmitBtn, SectionHeader, COLORS, fmtDateTime,
 } from './ApptShared';
 import { useDoctorAppointments } from '../hooks/useAppointments';
 
-// ─── Doctor Appointment Row ───────────────────────────────────
-function DoctorApptRow({ appt, onNoShow }) {
-  const canNoShow = appt.status === 'CONFIRMED' || appt.status === 'SCHEDULED';
+// â”€â”€â”€ Doctor Appointment Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function DoctorApptRow({ appt, onNoShow, onConfirm, onReject }) {
+  const canNoShow = appt.status === 'CONFIRMED';
+  const canDecide = appt.status === 'SCHEDULED';
+  const patientName = appt.patientName || appt.patientFullName || 'Patient';
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', padding: '16px 22px', borderBottom: '1px solid #f8fafc', gap: 16, flexWrap: 'wrap' }}>
@@ -33,8 +35,8 @@ function DoctorApptRow({ appt, onNoShow }) {
             <ApptIcon name="user" size={15} color={COLORS.primary} />
           </div>
           <div>
-            <p style={{ fontSize: '0.84rem', fontWeight: 600, color: '#111827', margin: 0 }}>Patient</p>
-            <p style={{ fontSize: '0.75rem', color: '#9ca3af', margin: 0 }}>{appt.patientId}</p>
+            <p style={{ fontSize: '0.84rem', fontWeight: 600, color: '#111827', margin: 0 }}>{patientName}</p>
+            <p style={{ fontSize: '0.75rem', color: '#9ca3af', margin: 0 }}>Patient</p>
           </div>
         </div>
       </div>
@@ -52,6 +54,12 @@ function DoctorApptRow({ appt, onNoShow }) {
       {/* Status + actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         <StatusBadge status={appt.status} />
+        {canDecide && (
+          <>
+            <button onClick={() => onConfirm(appt.id)} style={{ padding: '5px 11px', borderRadius: 8, background: '#ecfdf5', border: '1px solid #bbf7d0', color: '#16a34a', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, fontFamily: 'inherit' }}>Accepter</button>
+            <button onClick={() => onReject(appt.id)} style={{ padding: '5px 11px', borderRadius: 8, background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, fontFamily: 'inherit' }}>Refuser</button>
+          </>
+        )}
         {canNoShow && (
           <button id={`noshow-${appt.id}`} onClick={() => onNoShow(appt)}
             style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 11px', borderRadius: 8, background: '#fffbeb', border: '1px solid #fde68a', color: '#d97706', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, fontFamily: 'inherit' }}>
@@ -63,9 +71,9 @@ function DoctorApptRow({ appt, onNoShow }) {
   );
 }
 
-// ─── Doctor Appointments View ─────────────────────────────────
+// â”€â”€â”€ Doctor Appointments View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function DoctorAppointments({ doctorId }) {
-  const { data, loading, error, refresh, noShow } = useDoctorAppointments(doctorId);
+  const { data, loading, error, refresh, noShow, confirm, reject } = useDoctorAppointments(doctorId);
   const [noShowTarget, setNoShowTarget] = useState(null);
   const [filter, setFilter]             = useState('ALL');
   const [dateFilter, setDateFilter]     = useState('');
@@ -74,10 +82,11 @@ export default function DoctorAppointments({ doctorId }) {
 
   const STATUS_FILTERS = [
     { key: 'ALL',       label: 'Tous' },
-    { key: 'SCHEDULED', label: 'Planifiés' },
-    { key: 'CONFIRMED', label: 'Confirmés' },
-    { key: 'COMPLETED', label: 'Terminés' },
-    { key: 'CANCELLED', label: 'Annulés' },
+    { key: 'SCHEDULED', label: 'Planifies' },
+    { key: 'CONFIRMED', label: 'Confirmes' },
+    { key: 'COMPLETED', label: 'Termines' },
+    { key: 'CANCELLED', label: 'Annules' },
+    { key: 'REJECTED', label: 'Refuses' },
     { key: 'NO_SHOW',   label: 'Absents' },
   ];
 
@@ -109,15 +118,15 @@ export default function DoctorAppointments({ doctorId }) {
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: '1.6rem', color: '#111827', margin: 0 }}>Mon agenda</h1>
-        <p style={{ color: '#9ca3af', fontSize: '0.88rem', marginTop: 4 }}>Gérez les consultations et plannings de vos patients.</p>
+        <p style={{ color: '#9ca3af', fontSize: '0.88rem', marginTop: 4 }}>Gerez les consultations et plannings de vos patients.</p>
       </div>
 
       {/* Stats row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14, marginBottom: 28 }}>
         {[
           { label: "Aujourd'hui", value: todayCount, icon: 'calendar', color: COLORS.primary },
-          { label: 'À venir', value: scheduledCount, icon: 'clock', color: '#6366f1' },
-          { label: 'Terminés', value: completedCount, icon: 'check-circle', color: '#10b981' },
+          { label: 'A venir', value: scheduledCount, icon: 'clock', color: '#6366f1' },
+          { label: 'Termines', value: completedCount, icon: 'check-circle', color: '#10b981' },
           { label: 'Total', value: appointments.length, icon: 'list', color: '#f59e0b' },
         ].map(s => (
           <Card key={s.label} style={{ padding: '18px 20px' }}>
@@ -165,10 +174,10 @@ export default function DoctorAppointments({ doctorId }) {
         {loading && <Skeleton rows={5} height={70} />}
         {error && !loading && <ErrorBanner message={error} onRetry={refresh} />}
         {!loading && !error && sorted.length === 0 && (
-          <EmptyState icon="schedule" title="Aucune consultation" sub="Aucun rendez-vous ne correspond à vos filtres." />
+          <EmptyState icon="schedule" title="Aucune consultation" sub="Aucun rendez-vous ne correspond a vos filtres." />
         )}
         {!loading && !error && sorted.map(a => (
-          <DoctorApptRow key={a.id} appt={a} onNoShow={setNoShowTarget} />
+          <DoctorApptRow key={a.id} appt={a} onNoShow={setNoShowTarget} onConfirm={confirm} onReject={reject} />
         ))}
       </Card>
 
@@ -184,3 +193,4 @@ export default function DoctorAppointments({ doctorId }) {
     </div>
   );
 }
+

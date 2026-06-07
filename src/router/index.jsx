@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+﻿import { createBrowserRouter } from 'react-router-dom';
 import PrivateRoute from './PrivateRoute';
 import LandingPage  from '../features/landing/pages/LandingPage';
 import AuthPage     from '../features/auth/pages/AuthPage';
@@ -27,7 +27,7 @@ import NotificationsPage from '../features/notifications/pages/NotificationsPage
 
 const router = createBrowserRouter([
 
-  // ── Public routes ─────────────────────────────
+  // â”€â”€ Public routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     path: '/',
     element: <LandingPage />,
@@ -37,7 +37,7 @@ const router = createBrowserRouter([
     element: <AuthPage />,
   },
 
-  // ── Protected routes (all roles) ──────────────
+  // â”€â”€ Protected routes (all roles) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     path: '/app',
       element: (
@@ -58,7 +58,7 @@ const router = createBrowserRouter([
           { path: 'notifications',    element: <NotificationsPage /> },
 
           // Doctor
-          { path: 'patients',        element: <div style={{padding:24,fontFamily:'DM Sans'}}>Mes patients — coming soon</div> },
+          { path: 'patients',        element: <div style={{padding:24,fontFamily:'DM Sans'}}>Mes patients â€” coming soon</div> },
           { path: 'schedule',        element: <AppointmentsPage /> },
            
           { path: 'profile', element: <ProfilePage /> },
@@ -73,7 +73,7 @@ const router = createBrowserRouter([
     ],
   },
 
-  // ── Patient Space ──────────────────────────────
+  // â”€â”€ Patient Space â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     path: '/patient',
     element: <PrivateRoute allowedRoles={['PATIENT', 'USER', 'ADMIN']} />,
@@ -92,7 +92,7 @@ const router = createBrowserRouter([
     ],
   },
 
-  // ── Doctor Space ───────────────────────────────
+  // â”€â”€ Doctor Space â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     path: '/doctor',
     element: <PrivateRoute allowedRoles={['DOCTOR', 'ADMIN']} />,
@@ -104,14 +104,14 @@ const router = createBrowserRouter([
           { path: 'patients/:id',      element: <DoctorPatientView /> },
           { path: 'patients/:id/consultation', element: <ConsultationPage /> },
           { path: 'patients/:id/prescription', element: <CreatePrescriptionPage /> },
-          { path: 'consultations',     element: <div style={{padding:24}}>Mes consultations — soon</div> },
+          { path: 'consultations',     element: <AppointmentsPage /> },
           { path: 'prescriptions',     element: <PrescriptionsPage /> },
         ],
       },
     ],
   },
 
-  // ── Admin routes ────────────────────────────────
+  // â”€â”€ Admin routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     path: '/admin',
     element: (
@@ -122,19 +122,20 @@ const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { index: true, element: <AdminUsersPage /> },
+          { path: 'users', element: <AdminUsersPage /> },
         ],
       },
     ],
   },
 
-  // ── 404 ───────────────────────────────────────
+  // â”€â”€ 404 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     path: '*',
     element: (
       <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', minHeight:'100vh', fontFamily:'DM Sans', gap:16 }}>
         <div style={{ fontFamily:'Sora', fontSize:'4rem', fontWeight:800, color:'#111827' }}>404</div>
         <p style={{ color:'#9ca3af' }}>Page introuvable</p>
-        <a href="/" style={{ color:'#2ecc71', fontWeight:600 }}>Retour à l'accueil</a>
+        <a href="/" style={{ color:'#2ecc71', fontWeight:600 }}>Retour Ã  l'accueil</a>
       </div>
     ),
   },

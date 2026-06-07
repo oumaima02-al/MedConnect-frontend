@@ -54,13 +54,9 @@ notifApi.interceptors.response.use(
           }
         } catch (refreshError) {
           notifRefreshPromise = null;
-          clearStoredSession();
-          window.location.href = '/login';
           return Promise.reject(refreshError);
         }
       }
-      clearStoredSession();
-      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

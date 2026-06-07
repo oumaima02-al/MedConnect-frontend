@@ -38,7 +38,7 @@ export default function OtpVerification({ email, onBack, onSuccess }) {
     if (code.length === 6) {
       const res = await handleVerify({ email, code });
       if (res?.success) {
-        navigate('/login?verified=true');
+        navigate('/app/dashboard');
         onSuccess?.();
       }
     }
