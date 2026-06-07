@@ -119,10 +119,11 @@ const INITIAL_PREVIEWS = { cardFrontImage: null, cardBackImage: null };
 
 /* ── MAIN PAGE ───────────────────────────────────────────────────── */
 export default function BecomeDoctorPage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
+  const userId = user?.id || user?.userId;
 
-  const { status, isLoading: statusLoading, refetch } = useDoctorStatus(user?.id);
+  const { status, isLoading: statusLoading, refetch } = useDoctorStatus(userId);
 
   const [step, setStep] = useState(0);      // 0=Info, 1=Docs, 2=Confirmation
   const [done, setDone] = useState(false);  // final success screen
@@ -141,6 +142,13 @@ export default function BecomeDoctorPage() {
   useEffect(() => {
     if (toast) { const t = setTimeout(() => setToast(null), 4500); return () => clearTimeout(t); }
   }, [toast]);
+
+  useEffect(() => {
+    if (status === 'VERIFIED') {
+      updateUser({ role: 'DOCTOR' });
+      localStorage.setItem('MedConnect_role', 'DOCTOR');
+    }
+  }, [status, updateUser]);
 
   const showToast = (message, type = 'success') => setToast({ message, type });
 
@@ -188,25 +196,33 @@ export default function BecomeDoctorPage() {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      // 1. Create doctor profile
-      await doctorService.createProfile({
-        userId: user?.id,
-        ...form
-      });
+      // 1. Create or update doctor profile
+      try {
+        await doctorService.createProfile({
+          userId,
+          ...form
+        });
+      } catch (profileErr) {
+        const profileMsg = profileErr?.response?.data?.message || profileErr?.message || '';
+        if (!profileMsg.toLowerCase().includes('already exists')) {
+          throw profileErr;
+        }
+        await doctorService.updateProfile(userId, form);
+      }
 
       // 2. Upload documents — formData fields match backend expectations
       const uploads = [];
       if (files.cardFrontImage) {
-        uploads.push(documentService.upload(user?.id, 'DOCTOR', 'FRONT', files.cardFrontImage));
+        uploads.push(documentService.upload(userId, 'DOCTOR', 'FRONT', files.cardFrontImage));
       }
       if (files.cardBackImage) {
-        uploads.push(documentService.upload(user?.id, 'DOCTOR', 'BACK', files.cardBackImage));
+        uploads.push(documentService.upload(userId, 'DOCTOR', 'BACK', files.cardBackImage));
       }
       await Promise.all(uploads);
 
       // Verify documents are saved
       try {
-        const verifyRes = await documentService.getDocumentsByUser(user?.id);
+        const verifyRes = await documentService.getDocumentsByUser(userId);
         const docs = verifyRes.data?.data || verifyRes.data || [];
         if (docs.length < 2) {
           console.warn('[BecomeDoctor] Not all documents verified in DB yet.', docs);
@@ -302,7 +318,7 @@ export default function BecomeDoctorPage() {
           )}
 
           {/* ── No application or retry flow ─────────────── */}
-          {(!status || status === 'REJECTED') && (
+          {(!status || status === 'NOT_APPLIED' || status === 'REJECTED') && (
             <>
               {done ? (
                 <SuccessScreen onGoToDashboard={() => navigate('/app/dashboard')} />

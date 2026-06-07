@@ -6,12 +6,13 @@ import { documentService } from '../../../services/documentService';
  * Fetches and displays FRONT + BACK professional documents for a given userId.
  * Uses GET /api/users/professional-documents/user/{userId}
  */
-export default function AdminDocumentViewer({ userId, userName }) {
+export default function AdminDocumentViewer({ userId, userName, legacyFrontUrl, legacyBackUrl }) {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState('');
   const [lightbox, setLightbox]   = useState(null); // { src, title }
   const [downloading, setDownloading] = useState({}); // { [docId]: true }
+  const [previews, setPreviews] = useState({});
 
   useEffect(() => {
     if (!userId) { setLoading(false); return; }
@@ -39,11 +40,46 @@ export default function AdminDocumentViewer({ userId, userName }) {
     fetchDocs();
   }, [userId]);
 
-  const handleDownload = async (e, doc) => {
+  useEffect(() => {
+    const urls = [];
+    const loadPreviews = async () => {
+      const next = {};
+      await Promise.all(documents.map(async (doc) => {
+        if (!doc?.id || !doc.downloadUrl) return;
+        try {
+          const res = await documentService.downloadFromSignedUrl(doc.downloadUrl);
+          const type = res.headers?.['content-type'] || doc.contentType || '';
+          const objectUrl = URL.createObjectURL(new Blob([res.data], { type }));
+          urls.push(objectUrl);
+          next[doc.id] = { url: objectUrl, type };
+        } catch (err) {
+          console.error('[AdminDocumentViewer] Preview failed:', err);
+        }
+      }));
+      setPreviews(next);
+    };
+
+    loadPreviews();
+    return () => urls.forEach(url => URL.revokeObjectURL(url));
+  }, [documents]);
+
+  const handleDownload = async (e, doc, legacyUrl) => {
     e.stopPropagation();
+    if (!doc && legacyUrl) {
+      const link = document.createElement('a');
+      link.href = legacyUrl;
+      link.download = `${userId}_document`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      return;
+    }
+    if (!doc) return;
     setDownloading(prev => ({ ...prev, [doc.id]: true }));
     try {
-      const res = await documentService.downloadDocument(doc.id);
+      const res = doc.downloadUrl
+        ? await documentService.downloadFromSignedUrl(doc.downloadUrl)
+        : await documentService.downloadDocument(doc.id);
       const blob = new Blob([res.data]);
       const url  = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -97,16 +133,20 @@ export default function AdminDocumentViewer({ userId, userName }) {
   const backDoc  = documents.find(d => d.side === 'BACK'  || d.side === 'back');
 
   const sides = [
-    { key: 'FRONT', label: 'Recto', doc: frontDoc },
-    { key: 'BACK',  label: 'Verso',  doc: backDoc  },
+    { key: 'FRONT', label: 'Recto', doc: frontDoc, legacyUrl: legacyFrontUrl },
+    { key: 'BACK',  label: 'Verso',  doc: backDoc, legacyUrl: legacyBackUrl },
   ];
 
-  const docUrl = (doc) => doc?.documentUrl || doc?.url || doc?.fileUrl || null;
+  const docUrl = (doc, legacyUrl) => previews[doc?.id]?.url || doc?.documentUrl || doc?.url || doc?.fileUrl || legacyUrl || null;
+  const isPdf = (doc) => {
+    const type = previews[doc?.id]?.type || doc?.contentType || '';
+    return type.toLowerCase().includes('pdf');
+  };
 
   return (
     <>
       {/* No documents notice */}
-      {documents.length === 0 && (
+      {documents.length === 0 && !legacyFrontUrl && !legacyBackUrl && (
         <div style={{
           padding: '12px 16px', borderRadius: 10,
           background: '#fffbeb', border: '1px dashed #fde68a',
@@ -116,10 +156,10 @@ export default function AdminDocumentViewer({ userId, userName }) {
         </div>
       )}
 
-      {documents.length > 0 && (
+      {(documents.length > 0 || legacyFrontUrl || legacyBackUrl) && (
         <div style={{ display: 'flex', gap: 14 }}>
           {sides.map(side => {
-            const url = docUrl(side.doc);
+            const url = docUrl(side.doc, side.legacyUrl);
             return (
               <div
                 key={side.key}
@@ -132,19 +172,31 @@ export default function AdminDocumentViewer({ userId, userName }) {
                 {url ? (
                   <>
                     {/* Thumbnail — click to open lightbox */}
-                    <div
-                      onClick={() => setLightbox({ src: url, title: `${side.label} — ${userName}` })}
-                      style={{
-                        width: '100%', height: '100%',
-                        backgroundImage: `url(${url})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        cursor: 'pointer',
-                        transition: 'transform 0.2s',
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
-                      onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                    />
+                    {isPdf(side.doc) ? (
+                      <div
+                        onClick={(e) => handleDownload(e, side.doc, side.legacyUrl)}
+                        style={{
+                          width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: '#475569', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', background: '#f8fafc',
+                        }}
+                      >
+                        PDF disponible
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => setLightbox({ src: url, title: `${side.label} - ${userName}` })}
+                        style={{
+                          width: '100%', height: '100%',
+                          backgroundImage: `url(${url})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          cursor: 'pointer',
+                          transition: 'transform 0.2s',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                      />
+                    )}
                     {/* Footer bar */}
                     <div style={{
                       position: 'absolute', bottom: 0, left: 0, right: 0,
@@ -156,7 +208,7 @@ export default function AdminDocumentViewer({ userId, userName }) {
                         {side.label}
                       </span>
                       <button
-                        onClick={(e) => handleDownload(e, side.doc)}
+                        onClick={(e) => handleDownload(e, side.doc, side.legacyUrl)}
                         disabled={downloading[side.doc?.id]}
                         title="Télécharger"
                         style={{

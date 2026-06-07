@@ -18,8 +18,8 @@ function ConsentForm({ onSubmit, loading }) {
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit({ ...form, expiresAt: form.expiresAt ? new Date(form.expiresAt).toISOString() : undefined }); }}>
-      <Field label="ID du médecin" required>
-        <Input id="consent-docid" value={form.doctorId} onChange={set('doctorId')} placeholder="Identifiant du médecin" required />
+      <Field label="Medecin" required>
+        <Input id="consent-docid" value={form.doctorId} onChange={set('doctorId')} placeholder="Selectionner le medecin" required />
       </Field>
       <Field label="Niveau d'accès">
         <Select id="consent-level" value={form.accessLevel} onChange={set('accessLevel')} options={ACCESS_OPT} />
@@ -87,7 +87,7 @@ export default function ConsentSection({ patientId }) {
               <Icon name="lock" size={16} color={c.status === 'ACTIVE' ? '#059669' : '#9ca3af'} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600, color: '#111827', fontSize: '0.9rem' }}>Médecin: {c.doctorId}</div>
+              <div style={{ fontWeight: 600, color: '#111827', fontSize: '0.9rem' }}>Medecin: {c.doctorName || c.doctorFullName || 'Medecin'}</div>
               <div style={{ fontSize: '0.78rem', color: '#9ca3af', marginTop: 2 }}>
                 Accordé: {fmtDate(c.grantedAt)}{c.expiresAt ? ` · Expire: ${fmtDate(c.expiresAt)}` : ''}
               </div>
@@ -99,7 +99,7 @@ export default function ConsentSection({ patientId }) {
                 <ActionBtn
                   id={`revoke-consent-${c.id}`}
                   icon="x" color="#dc2626" title="Révoquer"
-                  onClick={() => setModal({ type: 'revoke', doctorId: c.doctorId })}
+                  onClick={() => setModal({ type: 'revoke', doctorId: c.doctorId, doctorName: c.doctorName || c.doctorFullName || 'Medecin' })}
                 />
               )}
             </div>
@@ -112,7 +112,7 @@ export default function ConsentSection({ patientId }) {
       </Modal>
       <Modal open={modal?.type === 'revoke'} onClose={() => setModal(null)} title="Révoquer l'accès" width={440}>
         <p style={{ fontSize: '0.88rem', color: '#6b7280', marginBottom: 16 }}>
-          Vous allez révoquer l'accès du médecin <strong>{modal?.doctorId}</strong> à votre dossier médical.
+          Vous allez révoquer l'accès du médecin <strong>{modal?.doctorName || 'Medecin'}</strong> à votre dossier médical.
         </p>
         <RevokeForm onSubmit={handleRevoke} loading={saving} />
       </Modal>

@@ -9,10 +9,10 @@ const STATUS_OPTIONS = [
   { value: 'CANCELLED', label: 'Annulée' },
 ];
 
-function CreatePrescriptionForm({ patientId, onSubmit, loading }) {
+function CreatePrescriptionForm({ patientId, doctorId, onSubmit, loading }) {
   const [form, setForm] = useState({
     patientId: patientId || '',
-    doctorId: '',
+    doctorId: doctorId || '',
     prescriptionDate: new Date().toISOString().slice(0, 10),
     expiryDate: '',
     status: 'ACTIVE',
@@ -42,8 +42,8 @@ function CreatePrescriptionForm({ patientId, onSubmit, loading }) {
   return (
     <form onSubmit={handleSubmit}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <Field label="ID Patient" required><Input id="rx-patient" value={form.patientId} onChange={set('patientId')} placeholder="patient-id" required /></Field>
-        <Field label="ID Médecin" required><Input id="rx-doctor" value={form.doctorId} onChange={set('doctorId')} placeholder="doctor-id" required /></Field>
+        <Field label="Patient" required><Input id="rx-patient" value={form.patientId} onChange={set('patientId')} placeholder="Patient" required /></Field>
+        <Field label="Medecin" required><Input id="rx-doctor" value={form.doctorId} onChange={set('doctorId')} placeholder="Medecin" required /></Field>
         <Field label="Date prescription"><Input id="rx-date" type="date" value={form.prescriptionDate} onChange={set('prescriptionDate')} /></Field>
         <Field label="Date expiration"><Input id="rx-expiry" type="date" value={form.expiryDate} onChange={set('expiryDate')} /></Field>
         <div style={{ gridColumn: '1/-1' }}>
@@ -91,6 +91,7 @@ function CreatePrescriptionForm({ patientId, onSubmit, loading }) {
 export default function PrescriptionList({ patientId, onSelect }) {
   const { user } = useAuth();
   const isDoctor = user?.role === 'DOCTOR' || user?.role === 'ADMIN';
+  const currentDoctorId = user?.id || user?.userId || '';
 
   const { data, loading, error, create, cancel } = usePatientPrescriptions(patientId);
   const [modal, setModal] = useState(false);
@@ -141,7 +142,7 @@ export default function PrescriptionList({ patientId, onSelect }) {
               </div>
               <div style={{ fontSize: '0.77rem', color: '#9ca3af', marginTop: 2 }}>
                 {fmtDate(rx.prescriptionDate)}{rx.expiryDate ? ` · Expire: ${fmtDate(rx.expiryDate)}` : ''}
-                {rx.doctorId ? ` · Dr. ${rx.doctorId}` : ''}
+                {rx.doctorName || rx.doctorFullName ? ` · Dr. ${rx.doctorName || rx.doctorFullName}` : ''}
               </div>
             </div>
             {/* Status + actions */}
@@ -159,7 +160,7 @@ export default function PrescriptionList({ patientId, onSelect }) {
       </Card>
 
       <Modal open={modal} onClose={() => setModal(false)} title="Nouvelle ordonnance" width={600}>
-        <CreatePrescriptionForm patientId={patientId} onSubmit={handleCreate} loading={saving} />
+        <CreatePrescriptionForm patientId={patientId} doctorId={currentDoctorId} onSubmit={handleCreate} loading={saving} />
       </Modal>
     </>
   );

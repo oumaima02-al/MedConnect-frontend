@@ -19,7 +19,8 @@ export function useDoctorStatus(userId) {
       const { data } = await doctorService.getProfile(userId);
       // Backend returns profile with verificationStatus field
       const profile = data?.data || data;
-      setStatus(profile?.verificationStatus || profile?.status || (profile?.verified ? 'VERIFIED' : 'PENDING'));
+      const rawStatus = profile?.verificationStatus || profile?.status || (profile?.verified ? 'VERIFIED' : 'PENDING');
+      setStatus(rawStatus === 'PENDING_VERIFICATION' ? 'PENDING' : rawStatus);
     } catch (err) {
       // 404 means no application submitted yet — not an error
       if (err?.response?.status === 404) {

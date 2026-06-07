@@ -1,228 +1,205 @@
-import { useState, useEffect } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Icon } from '../../../components/layout/AppLayout';
+import { useAuth } from '../../../context/AuthContext';
+import { dmpService } from '../../../services/medicalService';
 
-// ─── Document Viewer Modal ───────────────────────────────────────
-function ViewerModal({ open, doc, onClose }) {
-  if (!open || !doc) return null;
-  const isPdf = doc.name.toLowerCase().endsWith('.pdf');
-  
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, animation: 'fadeIn 0.3s ease'
-    }} onClick={onClose}>
-      <style>{`
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
-      `}</style>
-      <div 
-        style={{
-          background: 'white', borderRadius: 24, width: '100%', maxWidth: 900, height: '85vh',
-          display: 'flex', flexDirection: 'column', overflow: 'hidden', animation: 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
-        }} 
-        onClick={e => e.stopPropagation()}
-      >
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name="file" color="#3b82f6" />
-            </div>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1e293b' }}>{doc.name}</h3>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8' }}>{doc.type} • {doc.date}</p>
-            </div>
-          </div>
-          <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <Icon name="logout" size={18} color="#64748b" />
-          </button>
-        </div>
-        <div style={{ flex: 1, background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-           {isPdf ? (
-             <div style={{ textAlign: 'center' }}>
-                <Icon name="file" size={64} color="#CBD5E1" />
-                <p style={{ marginTop: 20, color: '#64748b', fontSize: '0.9rem' }}>Prévisualisation du PDF : <strong>{doc.name}</strong></p>
-                <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 24 }}>
-                   <button style={{ padding: '10px 20px', borderRadius: 12, background: '#3b82f6', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Télécharger</button>
-                   <button style={{ padding: '10px 20px', borderRadius: 12, background: 'white', border: '1px solid #e2e8f0', color: '#1e293b', fontWeight: 600, cursor: 'pointer' }}>Imprimer</button>
-                </div>
-             </div>
-           ) : (
-             <div style={{ width: '100%', height: '100%', borderRadius: 12, background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-               <Icon name="image" size={48} color="#94a3b8" />
-             </div>
-           )}
-        </div>
-      </div>
-    </div>
-  );
+function Toast({ message, onClose }) {
+  useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, [onClose]);
+  return <div style={{ position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)', zIndex: 2000, background: '#1e293b', color: 'white', padding: '12px 24px', borderRadius: 16, boxShadow: '0 20px 25px -5px rgba(0,0,0,.3)', fontWeight: 700 }}>{message}</div>;
 }
 
-// ─── Toast Notification ──────────────────────────────────────────
-function Toast({ message, type, onClose }) {
-  useEffect(() => {
-    const timer = setTimeout(onClose, 4000);
-    return () => clearTimeout(timer);
-  }, [onClose]);
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
-  return (
-    <div style={{
-      position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
-      zIndex: 2000, background: '#1e293b', color: 'white', padding: '12px 24px',
-      borderRadius: 16, boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
-      display: 'flex', alignItems: 'center', gap: 12, animation: 'toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-    }}>
-      <style>{`
-        @keyframes toastIn { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-      `}</style>
-      <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#2ecc71', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Icon name="file" size={14} color="white" />
-      </div>
-      <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>{message}</span>
-    </div>
-  );
+function inferDocumentType(file) {
+  const name = file.name.toLowerCase();
+  if (name.includes('radio') || name.includes('scanner') || name.includes('irm') || name.match(/\.(jpg|jpeg|png)$/)) return 'IMAGING';
+  if (name.includes('analyse') || name.includes('lab') || name.includes('sang')) return 'LAB';
+  if (name.includes('ordonnance') || name.includes('prescription')) return 'PRESCRIPTION';
+  if (name.includes('rapport') || name.includes('certificat')) return 'REPORT';
+  return 'OTHER';
+}
+
+function formatDate(value) {
+  if (!value) return '-';
+  try { return new Date(value).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  catch { return value; }
+}
+
+function escapePdfText(value) {
+  return String(value || '').replace(/[\\()]/g, '\\$&').replace(/[^\x20-\x7E]/g, '');
+}
+
+function createFallbackPdf(doc) {
+  const title = escapePdfText(doc.documentName || 'Document');
+  const type = escapePdfText(doc.documentType || '-');
+  const uploadedBy = escapePdfText(doc.uploadedBy || 'Patient');
+  const lines = [
+    'MedConnect - Document archive',
+    `Document: ${title}`,
+    `Type: ${type}`,
+    `Ajoute par: ${uploadedBy}`,
+    '',
+    'Le contenu original de ce document ancien',
+    'n est pas disponible dans le stockage local.',
+    'Reimportez le fichier pour telecharger le PDF original.'
+  ];
+  const textOps = lines.map((line, index) => `BT /F1 12 Tf 72 ${760 - index * 22} Td (${escapePdfText(line)}) Tj ET`).join('\n');
+  const objects = [
+    '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj',
+    '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj',
+    '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj',
+    '4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj',
+    `5 0 obj << /Length ${textOps.length} >> stream\n${textOps}\nendstream endobj`
+  ];
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  objects.forEach((obj) => { offsets.push(pdf.length); pdf += `${obj}\n`; });
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  offsets.slice(1).forEach((offset) => { pdf += `${String(offset).padStart(10, '0')} 00000 n \n`; });
+  pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return new Blob([pdf], { type: 'application/pdf' });
+}
+function downloadDocument(doc) {
+  if (!doc?.fileUrl) return;
+  const name = doc.documentName || 'document';
+  let href = doc.fileUrl;
+  let downloadName = name;
+  let revoke = false;
+  const isDataFile = String(href).startsWith('data:');
+
+  if (!isDataFile) {
+    href = URL.createObjectURL(createFallbackPdf(doc));
+    downloadName = name.toLowerCase().endsWith('.pdf') ? name : `${name.replace(/\.[^.]+$/, '')}.pdf`;
+    revoke = true;
+  }
+
+  const link = document.createElement('a');
+  link.href = href;
+  link.download = downloadName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  if (revoke) URL.revokeObjectURL(href);
 }
 
 export default function PatientDocumentsPage() {
-  const [docs, setDocs] = useState([
-    { id: 1, name: 'Analyse Sang.pdf', date: '12 Mai 2024', type: 'LABO' },
-    { id: 2, name: 'Radio Thorax.jpg', date: '10 Mai 2024', type: 'IMAGERIE' }
-  ]);
+  const { user } = useAuth();
+  const patientId = user?.id || user?.userId || user?.sub;
+  const displayName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.fullName || user?.email || 'Patient';
+  const [docs, setDocs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [viewingDoc, setViewingDoc] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
   const [toast, setToast] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [error, setError] = useState('');
+
+  const loadDocuments = async () => {
+    if (!patientId) return;
+    setLoading(true);
+    setError('');
+    try {
+      const res = await dmpService.getDocuments(patientId);
+      const payload = res.data?.data ?? res.data;
+      setDocs(Array.isArray(payload) ? payload : payload?.content || payload?.items || []);
+    } catch (e) {
+      setDocs([]);
+      setError('Impossible de charger vos documents.');
+    } finally { setLoading(false); }
+  };
+
+  useEffect(() => { loadDocuments(); }, [patientId]);
 
   const handleUpload = () => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        setUploading(true);
-        setTimeout(() => {
-          const newDoc = {
-            id: Date.now(),
-            name: file.name,
-            date: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }),
-            type: 'DOCUMENT'
-          };
-          setDocs([newDoc, ...docs]);
-          setUploading(false);
-          setToast('Document importé avec succès !');
-        }, 1500);
-      }
+    input.accept = '.pdf,.jpg,.jpeg,.png,.doc,.docx';
+    input.onchange = async (e) => {
+      const file = e.target.files?.[0];
+      if (!file || !patientId) return;
+      setUploading(true);
+      setError('');
+      try {
+        const fileUrl = await readFileAsDataUrl(file);
+        await dmpService.uploadDocument(patientId, {
+          documentName: file.name,
+          documentType: inferDocumentType(file),
+          fileUrl,
+          mimeType: file.type || 'application/octet-stream',
+          fileSize: file.size,
+          uploadedBy: displayName,
+          description: `Document importe par le patient (${Math.round(file.size / 1024)} KB)`,
+        });
+        await loadDocuments();
+        setToast('Document ajoute au DMP avec succes.');
+      } catch (err) {
+        setError(err?.response?.data?.message || err?.message || 'Erreur pendant l import du document.');
+      } finally { setUploading(false); }
     };
     input.click();
   };
 
-  const handleRemove = (id) => {
-    setDocs(docs.filter(d => d.id !== id));
-    setConfirmDelete(null);
-    setToast('Document supprimé');
+  const handleDownload = async (doc) => {
+    if (!doc?.fileUrl && !doc?.id) return;
+    const key = doc.id || doc.documentName || 'document';
+    setDownloadingId(key);
+    setError('');
+    try {
+      let fullDoc = doc;
+      if (!fullDoc.fileUrl && doc.id) {
+        const res = await dmpService.getDocument(patientId, doc.id);
+        fullDoc = res.data?.data ?? res.data;
+      }
+      downloadDocument(fullDoc);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Impossible de telecharger ce document.');
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', paddingBottom: 60 }}>
-      {/* Toast */}
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
-
-      {/* Viewer Modal */}
-      <ViewerModal open={!!viewingDoc} doc={viewingDoc} onClose={() => setViewingDoc(null)} />
-
-      {/* Custom Confirmation Dialog */}
-      {confirmDelete && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'white', borderRadius: 20, padding: 32, width: '100%', maxWidth: 400, textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
-            <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-              <Icon name="logout" color="#ef4444" size={32} />
-            </div>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: 800 }}>Supprimer ?</h3>
-            <p style={{ margin: '0 0 24px 0', fontSize: '0.9rem', color: '#64748b' }}>Voulez-vous vraiment supprimer <strong>{confirmDelete.name}</strong> ? Cette action est irréversible.</p>
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, padding: '12px', borderRadius: 12, background: '#f1f5f9', border: 'none', fontWeight: 700, color: '#475569', cursor: 'pointer' }}>Annuler</button>
-              <button onClick={() => handleRemove(confirmDelete.id)} style={{ flex: 1, padding: '12px', borderRadius: 12, background: '#ef4444', border: 'none', fontWeight: 700, color: 'white', cursor: 'pointer' }}>Supprimer</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 34, gap: 20, flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ fontFamily: "'Sora',sans-serif", fontSize: '1.8rem', fontWeight: 800, color: '#111827', margin: 0 }}>
-            Mes Documents Médicaux
-          </h1>
-          <p style={{ color: '#9ca3af', fontSize: '0.95rem', marginTop: 4 }}>Gérez et sécurisez vos résultats d'analyses et copies médicales.</p>
+          <h1 style={{ fontFamily: "'Sora',sans-serif", fontSize: '1.8rem', fontWeight: 800, color: '#111827', margin: 0 }}>Mes Documents Medicaux</h1>
+          <p style={{ color: '#9ca3af', fontSize: '0.95rem', marginTop: 4 }}>Documents ajoutes a votre dossier medical.</p>
         </div>
-        <button 
-          onClick={handleUpload}
-          disabled={uploading}
-          style={{ 
-            padding: '14px 28px', borderRadius: 16, background: uploading ? '#86efac' : '#2ecc71', color: 'white', 
-            border: 'none', fontWeight: 700, cursor: uploading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 12,
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: uploading ? 'none' : '0 10px 15px -3px rgba(46, 204, 113, 0.3)'
-          }}
-          onMouseEnter={e => { if(!uploading) e.currentTarget.style.transform = 'translateY(-2px)'}}
-          onMouseLeave={e => { if(!uploading) e.currentTarget.style.transform = 'translateY(0)'}}
-        >
-          {uploading ? (
-            <div style={{ width: 18, height: 18, border: '3px solid white', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
-          ) : <Icon name="file" color="white" />}
-          {uploading ? 'Importation en cours...' : 'Importer un document'}
+        <button onClick={handleUpload} disabled={uploading || !patientId} style={{ padding: '14px 28px', borderRadius: 16, background: uploading ? '#86efac' : '#2ecc71', color: 'white', border: 'none', fontWeight: 800, cursor: uploading ? 'not-allowed' : 'pointer', boxShadow: uploading ? 'none' : '0 10px 15px -3px rgba(46,204,113,.3)' }}>
+          {uploading ? 'Importation...' : 'Importer un document'}
         </button>
       </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
-        {docs.map((doc) => (
-          <div key={doc.id} style={{ 
-            background: 'white', border: '1.5px solid #f1f5f9', borderRadius: 28, padding: '24px',
-            display: 'flex', flexDirection: 'column', gap: 16, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02)',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'relative', overflow: 'hidden'
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = 'translateY(-6px)';
-            e.currentTarget.style.borderColor = '#dcfce7';
-            e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.05)';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = 'none';
-            e.currentTarget.style.borderColor = '#f1f5f9';
-            e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.02)';
-          }}
-          >
-            <div style={{ width: 52, height: 52, borderRadius: 16, background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name="file" color="#3b82f6" size={24} />
-            </div>
-            <div>
-              <p style={{ margin: '0 0 6px 0', fontWeight: 800, fontSize: '1rem', color: '#1e293b' }}>{doc.name}</p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                 <span style={{ fontSize: '0.75rem', fontWeight: 700, color: doc.type === 'LABO' ? '#6366f1' : '#ec4899', background: doc.type === 'LABO' ? '#f5f3ff' : '#fdf2f8', padding: '2px 8px', borderRadius: 6 }}>{doc.type}</span>
-                 <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>• {doc.date}</span>
+      {error && <div style={{ marginBottom: 18, padding: 14, borderRadius: 12, background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>{error}</div>}
+      {loading ? <div style={{ color: '#94a3b8', fontWeight: 700 }}>Chargement des documents...</div> : docs.length === 0 ? (
+        <div style={{ background: 'white', border: '1px solid #f1f5f9', borderRadius: 22, padding: 42, textAlign: 'center', color: '#94a3b8' }}>Aucun document importe pour le moment.</div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
+          {docs.map((doc, index) => (
+            <div key={doc.id || index} style={{ background: 'white', border: '1.5px solid #f1f5f9', borderRadius: 24, padding: 24, display: 'flex', flexDirection: 'column', gap: 16, boxShadow: '0 4px 6px -1px rgba(0,0,0,.02)' }}>
+              <div style={{ width: 52, height: 52, borderRadius: 16, background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="file" color="#3b82f6" size={24} /></div>
+              <div>
+                <p style={{ margin: '0 0 6px', fontWeight: 800, fontSize: '1rem', color: '#1e293b' }}>{doc.documentName || 'Document'}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#6366f1', background: '#f5f3ff', padding: '2px 8px', borderRadius: 6 }}>{doc.documentType || 'DOCUMENT'}</span>
+                  <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>{formatDate(doc.createdAt || doc.uploadedAt)}</span>
+                </div>
               </div>
+              <button onClick={() => handleDownload(doc)} disabled={downloadingId === (doc.id || doc.documentName || 'document') || (!doc.fileUrl && !doc.id)} style={{ padding: 12, borderRadius: 12, background: (doc.fileUrl || doc.id) ? '#dcfce7' : '#f1f5f9', border: 'none', fontSize: '0.82rem', fontWeight: 800, color: (doc.fileUrl || doc.id) ? '#166534' : '#94a3b8', cursor: (doc.fileUrl || doc.id) ? 'pointer' : 'not-allowed' }}>{downloadingId === (doc.id || doc.documentName || 'document') ? 'Preparation...' : 'Telecharger'}</button>
             </div>
-            <div style={{ marginTop: 8, display: 'flex', gap: 12 }}>
-              <button 
-                onClick={() => setViewingDoc(doc)}
-                style={{ flex: 1, padding: '12px', borderRadius: 12, background: '#f1f5f9', border: 'none', fontSize: '0.82rem', fontWeight: 700, color: '#475569', cursor: 'pointer', transition: 'all 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'}
-                onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}
-              >
-                Visionner
-              </button>
-              <button 
-                onClick={() => setConfirmDelete(doc)}
-                style={{ width: 44, height: 44, borderRadius: 12, background: '#fff1f2', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#ffe4e6'}
-                onMouseLeave={e => e.currentTarget.style.background = '#fff1f2'}
-                title="Supprimer"
-              >
-                 <Icon name="logout" size={18} color="#ef4444" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
+
+
+

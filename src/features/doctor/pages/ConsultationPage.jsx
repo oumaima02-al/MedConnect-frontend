@@ -100,7 +100,7 @@ export default function ConsultationPage() {
         <h1 style={{ fontFamily: "'Sora',sans-serif", fontSize: '1.6rem', fontWeight: 800, color: '#111827', margin: 0 }}>
           Nouvelle Consultation Médicale
         </h1>
-        <p style={{ color: '#9ca3af', marginTop: 4, fontSize: '0.88rem' }}>Patient ID: {patientId}</p>
+        <p style={{ color: '#9ca3af', marginTop: 4, fontSize: '0.88rem' }}>Patient selectionne</p>
       </div>
 
       {apiError && (

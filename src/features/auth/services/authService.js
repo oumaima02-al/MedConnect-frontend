@@ -61,10 +61,19 @@ export const authService = {
       email: data.email,
       role: normalizedRole,
     };
+    if (normalizedRole && !userObj.role) {
+      userObj.role = normalizedRole;
+    }
     localStorage.setItem('MedConnect_access_token',  token || '');
     localStorage.setItem('MedConnect_refresh_token', data.refreshToken || '');
     localStorage.setItem('MedConnect_user',          JSON.stringify(userObj));
     localStorage.setItem('MedConnect_role',          normalizedRole);
+    return {
+      user: userObj,
+      accessToken: token,
+      refreshToken: data.refreshToken,
+      role: normalizedRole,
+    };
   },
 
   clearSession: () => {

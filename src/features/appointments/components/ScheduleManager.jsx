@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import {
   Card, ApptIcon, EmptyState, Skeleton, ErrorBanner, SectionHeader,
   Modal, Field, Input, SubmitBtn, COLORS, fmtDate, SuccessBanner,
 } from './ApptShared';
-import { useDoctorSchedule } from '../hooks/useAppointments';
-import { getAvailableSlots } from '../services/appointmentService';
+import { useDoctorSchedule, useAvailableSlots } from '../hooks/useAppointments';
 
 const DAYS = [
   { value: 'MONDAY',    label: 'Lundi' },
@@ -18,7 +17,7 @@ const DAYS = [
 
 const DAY_LABELS = Object.fromEntries(DAYS.map(d => [d.value, d.label]));
 
-// ─── Schedule Form ────────────────────────────────────────────
+
 function ScheduleForm({ initial, onSave, loading }) {
   const [form, setForm] = useState({
     workDays: initial?.workDays || [],
@@ -54,9 +53,9 @@ function ScheduleForm({ initial, onSave, loading }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErr('');
-    if (form.workDays.length === 0) { setErr('Sélectionnez au moins un jour de travail.'); return; }
+    if (form.workDays.length === 0) { setErr('Selectionnez au moins un jour de travail.'); return; }
     const dur = parseInt(form.appointmentDurationMinutes);
-    if (!dur || dur < 1 || dur > 480) { setErr('La durée doit être entre 1 et 480 minutes.'); return; }
+    if (!dur || dur < 1 || dur > 480) { setErr('La duree doit etre entre 1 et 480 minutes.'); return; }
     setSubmitting(true);
     try {
       await onSave({ ...form, appointmentDurationMinutes: dur });
@@ -71,7 +70,7 @@ function ScheduleForm({ initial, onSave, loading }) {
     <form onSubmit={handleSubmit}>
       {err && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 14px', marginBottom: 16, fontSize: '0.84rem', color: '#dc2626' }}>{err}</div>}
 
-      <Field label="Jours travaillés" required>
+      <Field label="Jours travailles" required>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {DAYS.map(d => (
             <button key={d.value} type="button" onClick={() => toggleDay(d.value)}
@@ -89,33 +88,33 @@ function ScheduleForm({ initial, onSave, loading }) {
       </Field>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-        <Field label="Début de journée" required>
+        <Field label="Debut de journee" required>
           <Input id="sched-start" type="time" value={form.startTime} onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))} required />
         </Field>
-        <Field label="Fin de journée" required>
+        <Field label="Fin de journee" required>
           <Input id="sched-end" type="time" value={form.endTime} onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))} required />
         </Field>
-        <Field label="Début pause déjeuner" required>
+        <Field label="Debut pause dejeuner" required>
           <Input id="sched-lunch-start" type="time" value={form.lunchStart} onChange={e => setForm(f => ({ ...f, lunchStart: e.target.value }))} required />
         </Field>
-        <Field label="Fin pause déjeuner" required>
+        <Field label="Fin pause dejeuner" required>
           <Input id="sched-lunch-end" type="time" value={form.lunchEnd} onChange={e => setForm(f => ({ ...f, lunchEnd: e.target.value }))} required />
         </Field>
       </div>
 
-      <Field label="Durée d'un RDV (minutes)" required hint="Entre 1 et 480 minutes">
+      <Field label="Duree d'un RDV (minutes)" required hint="Entre 1 et 480 minutes">
         <Input id="sched-duration" type="number" value={form.appointmentDurationMinutes}
           onChange={e => setForm(f => ({ ...f, appointmentDurationMinutes: e.target.value }))}
           min="1" max="480" required
         />
       </Field>
 
-      <SubmitBtn label={initial ? 'Mettre à jour le planning' : 'Créer le planning'} loading={loading || submitting} icon="schedule" />
+      <SubmitBtn label={initial ? 'Mettre a jour le planning' : 'Creer le planning'} loading={loading || submitting} icon="schedule" />
     </form>
   );
 }
 
-// ─── Vacation Panel ───────────────────────────────────────────
+
 function VacationPanel({ vacations, onAdd, onRemove }) {
   const [addOpen, setAddOpen] = useState(false);
   const [form, setForm] = useState({ startDate: '', endDate: '', reason: '' });
@@ -144,10 +143,10 @@ function VacationPanel({ vacations, onAdd, onRemove }) {
 
   return (
     <div>
-      <SectionHeader icon="wait" title="Périodes de congé" count={vacations.length} onAdd={() => setAddOpen(true)} addLabel="Ajouter un congé" color="#f59e0b" />
+      <SectionHeader icon="wait" title="Periodes de conge" count={vacations.length} onAdd={() => setAddOpen(true)} addLabel="Ajouter un conge" color="#f59e0b" />
 
       {vacations.length === 0 ? (
-        <EmptyState icon="wait" title="Aucun congé planifié" sub="Ajoutez vos périodes de vacances ou d'indisponibilité." />
+        <EmptyState icon="wait" title="Aucun conge planifie" sub="Ajoutez vos periodes de vacances ou d'indisponibilite." />
       ) : (
         <div style={{ padding: '12px 20px' }}>
           {vacations.map(v => (
@@ -156,7 +155,7 @@ function VacationPanel({ vacations, onAdd, onRemove }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                   <ApptIcon name="calendar" size={14} color="#d97706" />
                   <span style={{ fontWeight: 700, fontSize: '0.88rem', color: '#92400e' }}>
-                    {fmtDate(v.startDate)} → {fmtDate(v.endDate)}
+                    {fmtDate(v.startDate)} â†’ {fmtDate(v.endDate)}
                   </span>
                 </div>
                 <p style={{ fontSize: '0.8rem', color: '#d97706', margin: 0 }}>{v.reason}</p>
@@ -170,11 +169,11 @@ function VacationPanel({ vacations, onAdd, onRemove }) {
         </div>
       )}
 
-      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Ajouter un congé" icon="wait" width={460}>
+      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Ajouter un conge" icon="wait" width={460}>
         <form onSubmit={handleAdd}>
           {err && <div style={{ color: '#dc2626', fontSize: '0.84rem', marginBottom: 12 }}>{err}</div>}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <Field label="Date de début" required>
+            <Field label="Date de debut" required>
               <Input id="vac-start" type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} min={today} required />
             </Field>
             <Field label="Date de fin" required>
@@ -182,42 +181,27 @@ function VacationPanel({ vacations, onAdd, onRemove }) {
             </Field>
           </div>
           <Field label="Raison" required>
-            <Input id="vac-reason" value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} placeholder="Ex: Congés annuels" required />
+            <Input id="vac-reason" value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} placeholder="Ex: Conges annuels" required />
           </Field>
-          <SubmitBtn label="Ajouter le congé" loading={submitting} icon="plus" color="#f59e0b" />
+          <SubmitBtn label="Ajouter le conge" loading={submitting} icon="plus" color="#f59e0b" />
         </form>
       </Modal>
     </div>
   );
 }
 
-// ─── Available Slots View ─────────────────────────────────────
+
 function AvailableSlotsView({ doctorId }) {
   const today = new Date().toISOString().split('T')[0];
   const [date, setDate] = useState(today);
-  const [slots, setSlots] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState('');
+  const { slots, loading, error, fetchSlots } = useAvailableSlots(doctorId, date);
 
-  const fetchSlots = async (d) => {
-    setLoading(true);
-    setErr('');
-    try {
-      const res = await getAvailableSlots(doctorId, d);
-      setSlots(res.data?.data ?? res.data ?? []);
-    } catch (e) {
-      setErr(e?.response?.data?.message || 'Erreur de chargement des créneaux');
-      setSlots([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchSlots(date); }, [date]);
-
+  useEffect(() => {
+    if (doctorId && date) fetchSlots(doctorId, date);
+  }, [doctorId, date, fetchSlots]);
 
   const available = slots.filter(s => s.isAvailable);
-  const booked    = slots.filter(s => !s.isAvailable);
+  const booked = slots.filter(s => !s.isAvailable);
 
   return (
     <div style={{ padding: '20px 20px' }}>
@@ -227,35 +211,35 @@ function AvailableSlotsView({ doctorId }) {
         />
         <div style={{ display: 'flex', gap: 10 }}>
           <span style={{ fontSize: '0.8rem', color: COLORS.primary, fontWeight: 600 }}>{available.length} disponibles</span>
-          <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>·</span>
-          <span style={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: 600 }}>{booked.length} réservés</span>
+          <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>-</span>
+          <span style={{ fontSize: '0.8rem', color: '#ef4444', fontWeight: 600 }}>{booked.length} reserves</span>
         </div>
       </div>
 
-      {loading && <div style={{ color: '#9ca3af', fontSize: '0.84rem' }}>Chargement…</div>}
-      {err && <ErrorBanner message={err} />}
-      {!loading && !err && slots.length > 0 && (
+      {loading && <div style={{ color: '#9ca3af', fontSize: '0.84rem' }}>Chargement...</div>}
+      {!loading && error && slots.length === 0 && <ErrorBanner message={error} />}
+      {!loading && slots.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 8 }}>
           {slots.map(s => (
             <div key={s.id} style={{
               padding: '10px 8px', borderRadius: 12, textAlign: 'center',
               background: s.isAvailable ? '#f0fdf4' : '#fef2f2',
-              border: `1.5px solid ${s.isAvailable ? '#bbf7d0' : '#fecaca'}`,
+              border: '1.5px solid ' + (s.isAvailable ? '#bbf7d0' : '#fecaca'),
             }}>
               <p style={{ margin: 0, fontWeight: 700, fontSize: '0.85rem', color: s.isAvailable ? '#16a34a' : '#dc2626' }}>{s.startTime}</p>
-              <p style={{ margin: 0, fontSize: '0.7rem', color: s.isAvailable ? '#4ade80' : '#f87171' }}>{s.isAvailable ? 'Libre' : 'Réservé'}</p>
+              <p style={{ margin: 0, fontSize: '0.7rem', color: s.isAvailable ? '#4ade80' : '#f87171' }}>{s.isAvailable ? 'Libre' : 'Reserve'}</p>
             </div>
           ))}
         </div>
       )}
-      {!loading && !err && slots.length === 0 && (
-        <div style={{ textAlign: 'center', padding: 24, color: '#9ca3af', fontSize: '0.84rem' }}>Aucun créneau pour cette date.</div>
+      {!loading && !error && slots.length === 0 && (
+        <div style={{ textAlign: 'center', padding: 24, color: '#9ca3af', fontSize: '0.84rem' }}>Aucun creneau pour cette date.</div>
       )}
     </div>
   );
 }
 
-// ─── Schedule Manager (main) ──────────────────────────────────
+
 export default function ScheduleManager({ doctorId }) {
   const { data: schedule, loading, error, refresh, create, update, addVacation, removeVacation } = useDoctorSchedule(doctorId);
   const [activeTab, setActiveTab] = useState('schedule');
@@ -277,15 +261,15 @@ export default function ScheduleManager({ doctorId }) {
 
   const TABS = [
     { key: 'schedule', label: 'Planning',           icon: 'schedule' },
-    { key: 'slots',    label: 'Créneaux du jour',   icon: 'clock'    },
-    { key: 'vacation', label: 'Congés',             icon: 'wait'     },
+    { key: 'slots',    label: 'Creneaux du jour',   icon: 'clock'    },
+    { key: 'vacation', label: 'Conges',             icon: 'wait'     },
   ];
 
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
         <h1 style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: '1.6rem', color: '#111827', margin: 0 }}>Mon planning</h1>
-        <p style={{ color: '#9ca3af', fontSize: '0.88rem', marginTop: 4 }}>Configurez vos horaires de travail, congés et visualisez vos créneaux.</p>
+        <p style={{ color: '#9ca3af', fontSize: '0.88rem', marginTop: 4 }}>Configurez vos horaires de travail, conges et visualisez vos creneaux.</p>
       </div>
 
       {/* Tabs */}
@@ -308,11 +292,11 @@ export default function ScheduleManager({ doctorId }) {
 
       {activeTab === 'schedule' && (
         <Card style={{ maxWidth: 680 }}>
-          <SectionHeader icon="schedule" title={schedule ? 'Modifier mon planning' : 'Créer mon planning'} color={COLORS.primary} />
+          <SectionHeader icon="schedule" title={schedule ? 'Modifier mon planning' : 'Creer mon planning'} color={COLORS.primary} />
           <div style={{ padding: '24px 24px' }}>
             {loading && <Skeleton rows={4} />}
             {error && <ErrorBanner message={error} onRetry={refresh} />}
-            {saveSuccess && <SuccessBanner message="Planning sauvegardé avec succès !" />}
+            {saveSuccess && <SuccessBanner message="Planning sauvegarde avec succes !" />}
             {!loading && (
               <>
                 {schedule && (
@@ -320,13 +304,13 @@ export default function ScheduleManager({ doctorId }) {
                     <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '0 0 8px' }}>Planning actuel</p>
                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '0.82rem', color: '#374151' }}>
-                        ⏰ {schedule.startTime} → {schedule.endTime}
+                        â° {schedule.startTime} â†’ {schedule.endTime}
                       </span>
                       <span style={{ fontSize: '0.82rem', color: '#374151' }}>
-                        🍽 {schedule.lunchStart} → {schedule.lunchEnd}
+                        ðŸ½ {schedule.lunchStart} â†’ {schedule.lunchEnd}
                       </span>
                       <span style={{ fontSize: '0.82rem', color: '#374151' }}>
-                        📅 {schedule.appointmentDurationMinutes} min / RDV
+                        ðŸ“… {schedule.appointmentDurationMinutes} min / RDV
                       </span>
                     </div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
@@ -347,7 +331,7 @@ export default function ScheduleManager({ doctorId }) {
 
       {activeTab === 'slots' && (
         <Card style={{ maxWidth: 800 }}>
-          <SectionHeader icon="clock" title="Créneaux disponibles" color="#6366f1" />
+          <SectionHeader icon="clock" title="Creneaux disponibles" color="#6366f1" />
           <AvailableSlotsView doctorId={doctorId} />
         </Card>
       )}
@@ -364,3 +348,5 @@ export default function ScheduleManager({ doctorId }) {
     </div>
   );
 }
+
+

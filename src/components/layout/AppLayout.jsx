@@ -23,6 +23,7 @@ const NAV = {
   DOCTOR: [
     { to: '/doctor/dashboard', label: 'Tableau de bord', icon: 'grid' },
     { to: '/doctor/consultations', label: 'Mes consultations', icon: 'calendar' },
+    { to: '/doctor/patients', label: 'Dossiers patients', icon: 'users' },
     { to: '/doctor/prescriptions', label: 'Prescriptions', icon: 'pill' },
     { to: '/app/teleconsult', label: 'Téléconsultation', icon: 'video' },
     { to: '/app/messages',    label: 'Messagerie', icon: 'message' },

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import {
   Card, ApptIcon, EmptyState, ErrorBanner, SectionHeader,
-  Field, Input, SubmitBtn, COLORS, SuccessBanner,
+  Field, Input, Select, SubmitBtn, COLORS, SuccessBanner,
 } from './ApptShared';
-import { useWaitList } from '../hooks/useAppointments';
+import { useWaitList, useDoctorsList } from '../hooks/useAppointments';
 
 export default function WaitListPanel({ patientId }) {
   const [doctorId, setDoctorId] = useState('');

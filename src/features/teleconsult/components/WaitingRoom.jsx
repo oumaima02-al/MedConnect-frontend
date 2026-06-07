@@ -82,6 +82,7 @@ function DoctorQueueManager({ doctorId, onAdmit }) {
   };
 
   const queue = queueData?.queue || [];
+  const patientLabel = (item) => item.patientName || item.patientFullName || item.fullName || item.name || 'Patient';
 
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif" }}>
@@ -116,7 +117,7 @@ function DoctorQueueManager({ doctorId, onAdmit }) {
                   {item.position}
                 </div>
                 <div>
-                  <p style={{ fontWeight: 700, color: '#111827', margin: 0 }}>Patient ID: {item.patientId}</p>
+                  <p style={{ fontWeight: 700, color: '#111827', margin: 0 }}>{patientLabel(item)}</p>
                   <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: '2px 0 0' }}>En attente depuis {fmtTime(item.joinedAt)}</p>
                 </div>
               </div>

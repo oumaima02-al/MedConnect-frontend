@@ -61,4 +61,10 @@ export const documentService = {
       responseType: 'blob',
     });
   },
+
+  downloadFromSignedUrl: (downloadUrl) => {
+    const url = new URL(downloadUrl, window.location.origin);
+    const path = url.pathname.startsWith('/api') ? url.pathname.slice(4) : url.pathname;
+    return api.get(`${path}${url.search}`, { responseType: 'blob' });
+  },
 };

@@ -1,6 +1,6 @@
-import api from './api';
+﻿import api from './api';
 
-// ─── DMP Service (routed through gateway to port 8083) ────────────────────
+// â”€â”€â”€ DMP Service (routed through gateway to port 8083) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const dmpService = {
   // Get complete DMP summary for a patient
   getDmp: (patientId) => api.get(`/dmp/${patientId}`),
@@ -11,7 +11,7 @@ export const dmpService = {
   updateAllergy: (patientId, allergyId, data) => api.put(`/dmp/${patientId}/allergies/${allergyId}`, data),
   deleteAllergy: (patientId, allergyId) => api.delete(`/dmp/${patientId}/allergies/${allergyId}`),
 
-  // Medications (DMP history — different from Prescription service)
+  // Medications (DMP history â€” different from Prescription service)
   getMedications: (patientId) => api.get(`/dmp/${patientId}/medications`),
   getCurrentMedications: (patientId) => api.get(`/dmp/${patientId}/medications/current`),
 
@@ -37,6 +37,9 @@ export const dmpService = {
 
   // Documents
   getDocuments: (patientId) => api.get(`/dmp/${patientId}/documents`),
+  getDocument: (patientId, documentId) => api.get(`/dmp/${patientId}/documents/${documentId}`),
+  uploadDocument: (patientId, data) => api.post(`/dmp/${patientId}/documents`, data),
+  deleteDocument: (patientId, documentId) => api.delete(`/dmp/${patientId}/documents/${documentId}`),
 
   // Imaging
   getImaging: (patientId) => api.get(`/dmp/${patientId}/imaging`),
@@ -56,17 +59,19 @@ export const dmpService = {
   exportFhir: (patientId) => api.post(`/dmp/export-fhir/${patientId}`),
 };
 
-// ─── Medical actions (Doctor-specific, posted to DMP service) ────────────
+// â”€â”€â”€ Medical actions (Doctor-specific, posted to DMP service) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const medicalService = {
-  // Create a consultation note (Doctor → DMP)
+  // Create a consultation note (Doctor â†’ DMP)
   createConsultation: (patientId, data) =>
     api.post(`/dmp/${patientId}/consultations`, data),
 
-  // Add lab result for a patient (Doctor → DMP)
+  // Add lab result for a patient (Doctor â†’ DMP)
   addLabResult: (patientId, data) =>
     api.post(`/dmp/${patientId}/lab-results`, data),
 
-  // Add imaging for a patient (Doctor → DMP)
+  // Add imaging for a patient (Doctor â†’ DMP)
   addImaging: (patientId, data) =>
     api.post(`/dmp/${patientId}/imaging`, data),
 };
+
+

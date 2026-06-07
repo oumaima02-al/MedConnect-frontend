@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import {
   TcIcon, TC, SessionBadge, Card, ControlBtn, Modal, Field, Input,
   SubmitBtn, ErrorBanner, SuccessBanner, fmtDuration, fmtDateTime,
 } from './TcShared';
 import { useSession, useSessionStatus, useChat, useRecording, useScreenShare } from '../hooks/useTeleconsult';
 
-// ─── Chat Pane ────────────────────────────────────────────────
+// â”€â”€â”€ Chat Pane â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ChatPane({ sessionId, userId }) {
   const { chat, sending, send } = useChat(sessionId);
   const [msg, setMsg] = useState('');
@@ -65,7 +65,7 @@ function ChatPane({ sessionId, userId }) {
       <form onSubmit={handleSend} style={{ padding: '12px 14px', borderTop: `1px solid ${TC.border}`, display: 'flex', gap: 8 }}>
         <input
           value={msg} onChange={e => setMsg(e.target.value)}
-          placeholder="Votre message…"
+          placeholder="Votre message..."
           disabled={sending}
           style={{ flex: 1, padding: '10px 14px', border: `1.5px solid ${TC.border}`, borderRadius: 12, fontSize: '0.85rem', fontFamily: 'inherit', outline: 'none', background: '#fafbfc' }}
           onFocus={e => e.target.style.borderColor = TC.primary}
@@ -80,7 +80,7 @@ function ChatPane({ sessionId, userId }) {
   );
 }
 
-// ─── Join Link Modal ──────────────────────────────────────────
+// â”€â”€â”€ Join Link Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function JoinLinkModal({ open, onClose, sessionId, getJoinLink }) {
   const [role, setRole] = useState('PATIENT');
   const [linkData, setLink] = useState(null);
@@ -109,29 +109,29 @@ function JoinLinkModal({ open, onClose, sessionId, getJoinLink }) {
 
   return (
     <Modal open={open} onClose={onClose} title="Obtenir un lien de rejoindre" icon="link" width={480}>
-      <Field label="Rôle du participant" required>
+      <Field label="Role du participant" required>
         <div style={{ display: 'flex', gap: 8 }}>
           {['DOCTOR', 'PATIENT'].map(r => (
             <button key={r} type="button" onClick={() => { setRole(r); setLink(null); }}
               style={{ flex: 1, padding: '9px', borderRadius: 10, border: `2px solid ${role === r ? TC.primary : TC.border}`, background: role === r ? `${TC.primary}10` : 'white', color: role === r ? TC.primary : '#374151', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit', fontSize: '0.85rem', transition: 'all 0.15s' }}>
-              {r === 'DOCTOR' ? '👨‍⚕️ Médecin' : '🧑‍🤝‍🧑 Patient'}
+              {r === 'DOCTOR' ? 'Medecin' : 'Patient'}
             </button>
           ))}
         </div>
       </Field>
 
-      <SubmitBtn label="Générer le lien" loading={loading} icon="link" type="button" onClick={fetch} />
+      <SubmitBtn label="Generer le lien" loading={loading} icon="link" type="button" onClick={fetch} />
 
       {linkData && (
         <div style={{ marginTop: 18, background: '#f8fafc', borderRadius: 14, padding: '16px', border: `1px solid ${TC.border}` }}>
-          <p style={{ fontSize: '0.72rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '0 0 8px' }}>Lien généré</p>
+          <p style={{ fontSize: '0.72rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.04em', margin: '0 0 8px' }}>Lien genere</p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <div style={{ flex: 1, background: 'white', border: `1px solid ${TC.border}`, borderRadius: 10, padding: '10px 12px', fontSize: '0.78rem', color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {linkData.joinLink}
             </div>
             <button onClick={copy} style={{ padding: '10px', borderRadius: 10, background: copied ? '#f0fdf4' : '#f1f5f9', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.78rem', fontWeight: 600, color: copied ? '#16a34a' : '#374151', fontFamily: 'inherit', transition: 'all 0.15s' }}>
               <TcIcon name={copied ? 'check' : 'copy'} size={15} color={copied ? '#16a34a' : '#374151'} />
-              {copied ? 'Copié !' : 'Copier'}
+              {copied ? 'Copie !' : 'Copier'}
             </button>
           </div>
           {linkData.expiresAt && (
@@ -145,7 +145,7 @@ function JoinLinkModal({ open, onClose, sessionId, getJoinLink }) {
   );
 }
 
-// ─── Image Share Modal ────────────────────────────────────────
+// â”€â”€â”€ Image Share Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function ImageShareModal({ open, onClose, sessionId, shareImage }) {
   const [b64, setB64] = useState('');
   const [loading, setLoading] = useState(false);
@@ -162,7 +162,7 @@ function ImageShareModal({ open, onClose, sessionId, shareImage }) {
   };
 
   const handleShare = async () => {
-    if (!b64) { setErr('Veuillez sélectionner une image.'); return; }
+    if (!b64) { setErr('Veuillez selectionner une image.'); return; }
     setLoading(true);
     setErr('');
     try {
@@ -177,8 +177,8 @@ function ImageShareModal({ open, onClose, sessionId, shareImage }) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Partager une image médicale" icon="image" width={460}>
-      {success ? <SuccessBanner message="Image partagée avec succès !" /> : (
+    <Modal open={open} onClose={onClose} title="Partager une image medicale" icon="image" width={460}>
+      {success ? <SuccessBanner message="Image partagee avec succes !" /> : (
         <>
           <ErrorBanner message={err} />
           <div
@@ -190,7 +190,7 @@ function ImageShareModal({ open, onClose, sessionId, shareImage }) {
             ) : (
               <>
                 <TcIcon name="image" size={36} color="#d1d5db" />
-                <p style={{ color: '#9ca3af', fontSize: '0.84rem', marginTop: 10 }}>Cliquez pour sélectionner une image</p>
+                <p style={{ color: '#9ca3af', fontSize: '0.84rem', marginTop: 10 }}>Cliquez pour selectionner une image</p>
                 <p style={{ color: '#d1d5db', fontSize: '0.75rem' }}>PNG, JPG, JPEG</p>
               </>
             )}
@@ -198,7 +198,7 @@ function ImageShareModal({ open, onClose, sessionId, shareImage }) {
           </div>
           <div style={{ background: '#fffbeb', borderRadius: 10, padding: '10px 14px', marginBottom: 16, border: '1px solid #fde68a', display: 'flex', gap: 8 }}>
             <TcIcon name="shield" size={15} color="#d97706" />
-            <p style={{ fontSize: '0.77rem', color: '#92400e', margin: 0 }}>L'image sera chiffrée AES-256 et partagée uniquement avec les participants de la session.</p>
+            <p style={{ fontSize: '0.77rem', color: '#92400e', margin: 0 }}>L'image sera chiffree AES-256 et partagee uniquement avec les participants de la session.</p>
           </div>
           <SubmitBtn label="Partager l'image" loading={loading} icon="image" type="button" onClick={handleShare} disabled={!b64} />
         </>
@@ -207,20 +207,58 @@ function ImageShareModal({ open, onClose, sessionId, shareImage }) {
   );
 }
 
-// ─── Recording Controls ───────────────────────────────────────
-function RecordingControls({ sessionId, isDoctor }) {
+// â”€â”€â”€ Recording Controls â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function RecordingControls({ sessionId, isDoctor, mediaStream }) {
   const { recording, start, stop } = useRecording(sessionId);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  const [localRecording, setLocalRecording] = useState(null);
+  const recorderRef = useRef(null);
+  const chunksRef = useRef([]);
 
-  const isRecording = recording && recording.startedAt && !recording.stoppedAt;
+  const isRecording = localRecording || (recording && recording.startedAt && !recording.stoppedAt);
+
+  const downloadRecording = (chunks) => {
+    if (!chunks.length) return;
+    const blob = new Blob(chunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'teleconsultation-' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-') + '.webm';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
 
   const toggle = async () => {
     setBusy(true);
     setErr('');
     try {
-      if (isRecording) await stop();
-      else await start();
+      if (isRecording) {
+        recorderRef.current?.stop?.();
+        recorderRef.current = null;
+        setLocalRecording(null);
+        await stop();
+        return;
+      }
+
+      if (!mediaStream || !window.MediaRecorder) {
+        setErr('Enregistrement non disponible pour le moment.');
+        return;
+      }
+
+      chunksRef.current = [];
+      const options = MediaRecorder.isTypeSupported('video/webm') ? { mimeType: 'video/webm' } : undefined;
+      const recorder = new MediaRecorder(mediaStream, options);
+      recorder.ondataavailable = (event) => {
+        if (event.data?.size) chunksRef.current.push(event.data);
+      };
+      recorder.onstop = () => downloadRecording(chunksRef.current);
+      recorder.start();
+      recorderRef.current = recorder;
+      setLocalRecording({ startedAt: new Date().toISOString() });
+      await start();
     } catch (e) {
       setErr(e?.response?.data?.message || 'Erreur enregistrement');
     } finally {
@@ -229,7 +267,7 @@ function RecordingControls({ sessionId, isDoctor }) {
   };
 
   if (!isDoctor) {
-    return recording ? (
+    return isRecording ? (
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 20, background: '#fef2f2', border: '1px solid #fecaca' }}>
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', animation: 'tc-pulse 1.2s infinite', display: 'inline-block' }} />
         <span style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 600 }}>Enregistrement en cours</span>
@@ -242,7 +280,7 @@ function RecordingControls({ sessionId, isDoctor }) {
       {err && <p style={{ fontSize: '0.75rem', color: '#dc2626', marginBottom: 6 }}>{err}</p>}
       <ControlBtn
         icon={isRecording ? 'record-stop' : 'record'}
-        label={isRecording ? 'Arrêter REC' : 'Enregistrer'}
+        label={isRecording ? 'Arreter REC' : 'Enregistrer'}
         onClick={toggle}
         active={isRecording}
         danger={isRecording}
@@ -252,8 +290,8 @@ function RecordingControls({ sessionId, isDoctor }) {
   );
 }
 
-// ─── Session Room (main component) ───────────────────────────
-export default function SessionRoom({ session, onEnd, currentUserId, isDoctor }) {
+// â”€â”€â”€ Session Room (main component) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+export default function SessionRoom({ session, onEnd, currentUserId, currentUser, isDoctor }) {
   const { start, end, getJoinLink, data: sessionData, refresh } = useSession(session?.sessionId || session?.id);
   const { status: liveStatus } = useSessionStatus(session?.sessionId || session?.id, 5000);
   const { sharing, startShare, stopShare, shareImage } = useScreenShare(session?.sessionId || session?.id, currentUserId);
@@ -266,20 +304,72 @@ export default function SessionRoom({ session, onEnd, currentUserId, isDoctor })
   const [startErr, setStartErr] = useState('');
   const [muted, setMuted] = useState(false);
   const [camOff, setCamOff] = useState(false);
+  const [localStream, setLocalStream] = useState(null);
+  const [screenStream, setScreenStream] = useState(null);
+  const [mediaError, setMediaError] = useState('');
+  const videoRef = useRef(null);
+  const screenVideoRef = useRef(null);
 
   const sid = session?.sessionId || session?.id;
   const status = liveStatus?.status || sessionData?.status || session?.status;
+  const rawDoctorName = currentUser?.fullName || currentUser?.name || [currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ');
+  const doctorDisplayName = rawDoctorName && !rawDoctorName.includes('@') ? rawDoctorName : 'Medecin';
   const isActive = status === 'ACTIVE';
   const isEnded = status === 'ENDED' || status === 'FORCE_ENDED';
   const unread = 0; // Would track real unread msgs
 
+  useEffect(() => {
+    let cancelled = false;
+    const startMedia = async () => {
+      if (!isActive || isEnded) return;
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setMediaError('Camera non disponible sur ce navigateur.');
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: true });
+        if (cancelled) {
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
+        setLocalStream(stream);
+        setMediaError('');
+      } catch (e) {
+        setMediaError(e?.name === 'NotAllowedError' ? 'Autorisez la camera et le micro dans le navigateur.' : 'Impossible d ouvrir la camera ou le micro.');
+      }
+    };
+    startMedia();
+    return () => {
+      cancelled = true;
+      setLocalStream((stream) => {
+        stream?.getTracks?.().forEach(track => track.stop());
+        return null;
+      });
+    };
+  }, [isActive, isEnded, sid]);
+
+  useEffect(() => {
+    if (videoRef.current && localStream) videoRef.current.srcObject = localStream;
+  }, [localStream]);
+
+  useEffect(() => {
+    if (screenVideoRef.current && screenStream) screenVideoRef.current.srcObject = screenStream;
+  }, [screenStream]);
+
+  useEffect(() => {
+    localStream?.getAudioTracks?.().forEach(track => { track.enabled = !muted; });
+  }, [localStream, muted]);
+
+  useEffect(() => {
+    localStream?.getVideoTracks?.().forEach(track => { track.enabled = !camOff; });
+  }, [localStream, camOff]);
   const handleStart = async () => {
     setStarting(true);
     setStartErr('');
     try {
       await start();
     } catch (e) {
-      setStartErr(e?.response?.data?.message || 'Erreur au démarrage');
+      setStartErr(e?.response?.data?.message || 'Erreur au demarrage');
     } finally {
       setStarting(false);
     }
@@ -297,13 +387,32 @@ export default function SessionRoom({ session, onEnd, currentUserId, isDoctor })
 
   const toggleShare = async () => {
     try {
-      if (sharing) await stopShare();
-      else await startShare();
-    } catch (e) { /* error shown by hook */ }
+      if (sharing || screenStream) {
+        screenStream?.getTracks?.().forEach(track => track.stop());
+        setScreenStream(null);
+        await stopShare();
+        return;
+      }
+
+      if (!navigator.mediaDevices?.getDisplayMedia) {
+        setMediaError('Le partage ecran n est pas disponible dans ce navigateur.');
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+      stream.getVideoTracks?.()[0]?.addEventListener('ended', async () => {
+        setScreenStream(null);
+        await stopShare();
+      });
+      setScreenStream(stream);
+      await startShare();
+    } catch (e) {
+      if (e?.name !== 'NotAllowedError') setMediaError('Impossible de demarrer le partage ecran.');
+    }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', maxHeight: '100vh', overflow: 'hidden', fontFamily: "'DM Sans', sans-serif" }}>
       {/* Top bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 22px', background: '#0f172a', borderBottom: '1px solid #1e293b', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -312,9 +421,9 @@ export default function SessionRoom({ session, onEnd, currentUserId, isDoctor })
           </div>
           <div>
             <p style={{ fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '0.95rem', color: 'white', margin: 0 }}>
-              Téléconsultation
+              Teleconsultation
             </p>
-            <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>ID : {sid}</p>
+
           </div>
           <SessionBadge status={status} />
         </div>
@@ -340,18 +449,18 @@ export default function SessionRoom({ session, onEnd, currentUserId, isDoctor })
       </div>
 
       {/* Main area */}
-      <div style={{ flex: 1, display: 'flex', background: '#0f172a', overflow: 'hidden' }}>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', background: '#0f172a', overflow: 'hidden' }}>
 
         {/* Video area */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', position: 'relative' }}>
           {/* Simulated video area */}
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#0f172a 0%,#1e293b 100%)', position: 'relative' }}>
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#0f172a 0%,#1e293b 100%)', position: 'relative', overflow: 'hidden' }}>
             {isEnded ? (
               <div style={{ textAlign: 'center' }}>
                 <div style={{ width: 80, height: 80, borderRadius: '50%', background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                   <TcIcon name="video-off" size={36} color="#64748b" />
                 </div>
-                <p style={{ color: '#64748b', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '1rem' }}>Session terminée</p>
+                <p style={{ color: '#64748b', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '1rem' }}>Session terminee</p>
               </div>
             ) : !isActive ? (
               <div style={{ textAlign: 'center' }}>
@@ -359,7 +468,7 @@ export default function SessionRoom({ session, onEnd, currentUserId, isDoctor })
                   <TcIcon name="video" size={40} color={TC.primary} />
                 </div>
                 <p style={{ color: 'white', fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: '1.1rem', marginBottom: 8 }}>
-                  {status === 'WAITING' ? 'En salle d\'attente…' : 'Session non démarrée'}
+                  {status === 'WAITING' ? 'En salle d\'attente...' : 'Session non demarree'}
                 </p>
                 {isDoctor && status !== 'ACTIVE' && !isEnded && (
                   <>
@@ -370,18 +479,50 @@ export default function SessionRoom({ session, onEnd, currentUserId, isDoctor })
                       onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                     >
                       <TcIcon name="video" size={18} color="white" />
-                      {starting ? 'Démarrage…' : 'Démarrer la session'}
+                      {starting ? 'Demarrage...' : 'Demarrer la session'}
                     </button>
                   </>
                 )}
               </div>
             ) : (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ width: 90, height: 90, borderRadius: '50%', background: camOff ? '#1e293b' : `${TC.primary}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', boxShadow: camOff ? 'none' : `0 0 40px ${TC.primary}40`, animation: camOff ? 'none' : 'tc-glow 2s infinite alternate' }}>
-                  <TcIcon name={camOff ? 'video-off' : 'user'} size={40} color={camOff ? '#64748b' : TC.primary} />
-                </div>
-                <p style={{ color: '#94a3b8', fontSize: '0.84rem' }}>{camOff ? 'Caméra désactivée' : 'Connexion vidéo via lien de session'}</p>
-                <style>{`@keyframes tc-glow { from{box-shadow:0 0 20px ${TC.primary}20} to{box-shadow:0 0 50px ${TC.primary}50} }`}</style>
+              <div style={{ width: '100%', height: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {screenStream ? (
+                  <video
+                    ref={(node) => {
+                      if (node && node.srcObject !== screenStream) node.srcObject = screenStream;
+                      screenVideoRef.current = node;
+                    }}
+                    autoPlay
+                    muted
+                    playsInline
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#020617' }}
+                  />
+                ) : localStream && !camOff ? (
+                  <video
+                    ref={(node) => {
+                      if (node && node.srcObject !== localStream) node.srcObject = localStream;
+                      videoRef.current = node;
+                    }}
+                    autoPlay
+                    muted
+                    playsInline
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#020617' }}
+                  />
+                ) : (
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ width: 90, height: 90, borderRadius: '50%', background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+                      <TcIcon name={camOff ? 'video-off' : 'user'} size={40} color={camOff ? '#64748b' : TC.primary} />
+                    </div>
+                    <p style={{ color: '#94a3b8', fontSize: '0.84rem' }}>
+                      {mediaError || (camOff ? 'Camera desactivee' : 'Ouverture de la camera...')}
+                    </p>
+                  </div>
+                )}
+                {(localStream || screenStream) && (
+                  <div style={{ position: 'absolute', left: 18, bottom: 18, padding: '6px 12px', borderRadius: 999, background: 'rgba(15,23,42,.72)', color: 'white', fontWeight: 700, fontSize: '0.78rem' }}>
+                    {screenStream ? 'Partage ecran' : (isDoctor ? `Dr. ${doctorDisplayName}` : 'Vous')} {muted && !screenStream ? '- micro coupe' : ''}
+                  </div>
+                )}
               </div>
             )}
 
@@ -389,22 +530,22 @@ export default function SessionRoom({ session, onEnd, currentUserId, isDoctor })
             {sharing && (
               <div style={{ position: 'absolute', top: 16, left: 16, display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 20, background: 'rgba(99,102,241,0.9)', backdropFilter: 'blur(4px)' }}>
                 <TcIcon name="monitor" size={13} color="white" />
-                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'white' }}>Partage d'écran actif</span>
+                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'white' }}>Partage d'ecran actif</span>
               </div>
             )}
           </div>
 
           {/* Control bar */}
           {!isEnded && (
-            <div style={{ background: '#0f172a', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, borderTop: '1px solid #1e293b', flexWrap: 'wrap' }}>
+            <div style={{ background: '#0f172a', padding: '12px 18px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, borderTop: '1px solid #1e293b', flexWrap: 'wrap' }}>
               <ControlBtn icon={muted ? 'mic-off' : 'mic'} label={muted ? 'Activer micro' : 'Couper micro'} onClick={() => setMuted(m => !m)} active={!muted} />
               <ControlBtn icon={camOff ? 'video-off' : 'video'} label={camOff ? 'Activer cam' : 'Couper cam'} onClick={() => setCamOff(c => !c)} active={!camOff} />
 
               {isDoctor && (
                 <>
-                  <ControlBtn icon={sharing ? 'monitor-off' : 'monitor'} label={sharing ? 'Arrêter partage' : 'Partager écran'} onClick={toggleShare} active={sharing} disabled={!isActive} />
-                  <ControlBtn icon="image" label="Image médicale" onClick={() => setImgOpen(true)} disabled={!isActive} />
-                  <RecordingControls sessionId={sid} isDoctor={isDoctor} />
+                  <ControlBtn icon={sharing ? 'monitor-off' : 'monitor'} label={sharing ? 'Arreter partage' : 'Partager ecran'} onClick={toggleShare} active={sharing} disabled={!isActive} />
+                  <ControlBtn icon="image" label="Image medicale" onClick={() => setImgOpen(true)} disabled={!isActive} />
+                  <RecordingControls sessionId={sid} isDoctor={isDoctor} mediaStream={screenStream || localStream} />
                 </>
               )}
 
@@ -446,3 +587,9 @@ export default function SessionRoom({ session, onEnd, currentUserId, isDoctor })
     </div>
   );
 }
+
+
+
+
+
+

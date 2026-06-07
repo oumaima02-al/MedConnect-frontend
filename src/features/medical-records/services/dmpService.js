@@ -52,13 +52,9 @@ dmpApi.interceptors.response.use(
           }
         } catch (refreshError) {
           dmpRefreshPromise = null;
-          clearStoredSession();
-          window.location.href = '/login';
           return Promise.reject(refreshError);
         }
       }
-      clearStoredSession();
-      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
